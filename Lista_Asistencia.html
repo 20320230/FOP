@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>RQ-1001-FOP Lista de Asistencia</title>
+  <link rel="icon" type="image/png" href="./Isovolta.ico">
+
+  <!-- Librerías para Excel y PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    body { font-family:'Segoe UI',sans-serif; background:#f4f7fb; margin:0; padding:0 0 80px 0;}
+    header { text-align:center; background:#ffffff; padding:20px 0 10px 0; border-bottom:4px solid #045194; box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+    header img.logo { max-height:65px; margin-bottom:5px;}
+    header h1 { color:#00205B; margin:5px 0; font-size:1.8em; }
+
+    .filtros { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin:20px 0; }
+    select,button,input[type="date"] { padding:7px 12px; border-radius:6px; border:1px solid #ccd6df; font-size:14px; }
+    button { cursor:pointer; background:#015197; color:white; font-weight:600; transition:0.2s; }
+    button:hover { background:#003366; transform:translateY(-1px); }
+
+    table { width:98%; margin:auto; border-collapse:collapse; background:white; box-shadow:0 2px 8px rgba(0,0,0,0.08); border-radius:8px; overflow:hidden;}
+    th,td { border:1px solid #d2d7e6; padding:8px; text-align:center; font-size:13px; vertical-align:middle; }
+    th { background:#015197; color:white; font-weight:600; }
+    tbody tr:hover { background:#f0f7ff; }
+
+    canvas { border:1px solid #ccc; border-radius:4px; display:block; margin:6px auto; width: 250px; height: 100px; }
+    img.firma { max-height:90px; display:block; margin:auto; border:1px solid #ddd; border-radius:4px; cursor:pointer; transition:0.2s; }
+    img.firma:hover { transform:scale(1.05); }
+
+    .btns { position:fixed; top:120px; right:30px; display:flex; flex-direction:column; gap:10px; }
+    .btns button { padding:10px 18px; border:none; border-radius:6px; font-weight:600; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+    .btn-excel { background:#009688; color:white; }
+    .btn-excel:hover { background:#00796b; }
+    .btn-pdf { background:#d32f2f; color:white; }
+    .btn-pdf:hover { background:#9a0007; }
+
+    footer { position:fixed; bottom:0; left:0; width:100vw; background:#045194; color:#fff; text-align:center; padding:12px 0; font-size:14px; letter-spacing:0.5px;}
+
+    /* Modal zoom firma */
+    .modal { display:none; position:fixed; z-index:1000; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center;}
+    .modal img { max-width:80%; max-height:80%; border:4px solid white; border-radius:8px; }
+    .modal.show { display:flex; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://www.isovolta.com/logo_isovolta.png" alt="Logo Isovolta" class="logo">
+    <h1>RQ-1001-FOP Lista de Asistencia</h1>
+  </header>
+
+  <div class="filtros">
+    <select id="filtroArea" onchange="onAreaChange()"></select>
+    <select id="filtroPuesto" onchange="onPuestoChange()"></select>
+    <select id="filtroDocumento" onchange="onDocumentoChange()"></select>
+  </div>
+
+
+  <table>
+    <thead id="headMatriz"></thead>
+    <tbody id="bodyMatriz"></tbody>
+  </table>
+
+
+  <div class="modal" id="modalZoom" onclick="cerrarZoom()">
+    <img id="imgZoom" src="">
+  </div>
+
+<script>
+const DB_NAME='ILUO_DB';
+const DB_VERSION=1;
+const STORE_NAME='respaldo';
+
+let personasILUO=[];
+let documentosILUO=[];
+let historicoFirmas=[];
+
+let areaActiva="",puestoActivo="",docActivo="",revisionActiva="";
+
+function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onsuccess=()=>resolve(req.result);req.onerror=e=>reject(e.target.error);});}
+async function leerDeIndexedDB(clave){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readonly');const store=tx.objectStore(STORE_NAME);const req=store.get(clave);req.onsuccess=()=>resolve(req.result?req.result.valor:null);req.onerror=e=>reject(e.target.error);});}
+async function guardarEnIndexedDB(clave,valor){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).put({clave,valor});tx.oncomplete=()=>resolve();tx.onerror=e=>reject(e.target.error);});}
+
+window.onload=async()=>{
+  personasILUO=await leerDeIndexedDB("matrizILUO")||[];
+  documentosILUO=await leerDeIndexedDB("documentosILUO")||[];
+  historicoFirmas=await leerDeIndexedDB("asistenciaILUO_HistoricoHorizontal")||[];
+
+  const areas=[...new Set(personasILUO.map(p=>(p.area||"").trim()).filter(Boolean))].sort();
+  areaActiva=areas[0]||"";
+  document.getElementById("filtroArea").innerHTML=areas.map(a=>`<option value="${a}">${a}</option>`).join("");
+  onAreaChange();
+};
+
+function onAreaChange(){
+  areaActiva=document.getElementById("filtroArea").value;
+  const puestos=[...new Set(personasILUO.filter(p=>p.area===areaActiva).map(p=>(p.puesto||"").trim()))];
+  puestoActivo=puestos[0]||"";
+  document.getElementById("filtroPuesto").innerHTML=puestos.map(p=>`<option value="${p}">${p}</option>`).join("");
+  onPuestoChange();
+}
+
+function onPuestoChange(){
+  puestoActivo=document.getElementById("filtroPuesto").value;
+  const docs=documentosILUO.filter(d=>d.area===areaActiva&&d.puesto===puestoActivo);
+  docActivo=docs[0]?.codigo||"";
+  revisionActiva=docs[0]?.revision||"";
+  document.getElementById("filtroDocumento").innerHTML=docs.map(d=>
+    `<option value="${d.codigo}" data-revision="${d.revision||''}">${d.codigo} - ${d.documento} (Rev: ${d.revision||''})</option>`
+  ).join("");
+  renderMatriz();
+}
+
+function onDocumentoChange(){
+  const select=document.getElementById("filtroDocumento");
+  docActivo=select.value;
+  revisionActiva=select.options[select.selectedIndex].dataset.revision||"";
+  renderMatriz();
+}
+
+function getKey(){return `${areaActiva}_${puestoActivo}_${docActivo}`;}
+
+function renderMatriz(){
+  const key=getKey();
+  let registro=historicoFirmas.find(r=>r.id===key);
+  if(!registro){
+    registro={id:key, area:areaActiva, puesto:puestoActivo, documento:docActivo, revision:revisionActiva, personas:[]};
+    personasILUO.filter(p=>p.area===areaActiva && p.puesto===puestoActivo).forEach(p=>{
+      registro.personas.push({numero:p.numero,nombre:p.nombre,puesto:p.puesto,area:p.area,historialFirmas:[]});
+    });
+    historicoFirmas.push(registro);
+  }
+
+  const fechasUnicas=[...new Set(registro.personas.flatMap(p=>
+    p.historialFirmas.map(h=>`${h.fecha} (R${h.revision||''})`)
+  ))].sort();
+
+  const head=document.getElementById("headMatriz");
+  head.innerHTML=`<tr>
+    <th>Número</th><th>Nombre</th><th>Puesto</th><th>Área</th>
+    ${fechasUnicas.map(f=>`<th>${f}</th>`).join("")}
+    <th>Nueva Firma</th>
+  </tr>`;
+
+  const body=document.getElementById("bodyMatriz");
+  body.innerHTML="";
+  registro.personas.forEach(p=>{
+    const tr=document.createElement("tr");
+    let row=`<td>${p.numero}</td><td>${p.nombre}</td><td>${p.puesto}</td><td>${p.area}</td>`;
+    fechasUnicas.forEach(f=>{
+      const [fechaSolo]=f.split(" ");
+      const firma=p.historialFirmas.find(x=>x.fecha===fechaSolo)?.firma||"";
+      // Validación: Solo mostrar si es PNG válido y tiene tamaño aceptable
+      if(firma && firma.startsWith("data:image/png") && firma.length > 100){
+        row+=`<td>
+          <div style="position:relative; display:flex; flex-direction:column; align-items:center;">
+            <button onclick="eliminarFirma('${p.numero}','${fechaSolo}')" 
+                    style="background:red;color:white;font-size:10px;border:none;border-radius:4px;padding:2px 4px;margin-bottom:2px;cursor:pointer;">
+              ❌
+            </button>
+            <img class="firma" src="${firma}" onclick="zoomFirma('${firma}')">
+          </div>
+        </td>`;
+      } else {
+        row += `<td></td>`;
+      }
+    });
+    row+=`<td>
+            <canvas width="250" height="100" data-numero="${p.numero}"></canvas>
+            <input type="date" value="${new Date().toISOString().substring(0,10)}" data-numero="${p.numero}">
+            <button onclick="guardarFirma('${p.numero}')">Guardar Nueva Firma</button>
+          </td>`;
+    tr.innerHTML=row;
+    body.appendChild(tr);
+  });
+  activarCanvasFirmas();
+}
+
+function activarCanvasFirmas(){
+  document.querySelectorAll("canvas").forEach(canvas=>{
+    let ctx=canvas.getContext("2d");
+    let drawing=false;
+    canvas.onmousedown=e=>{drawing=true;ctx.beginPath();ctx.moveTo(e.offsetX,e.offsetY);};
+    canvas.onmousemove=e=>{if(drawing){ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke();}};
+    canvas.onmouseup=()=>drawing=false;
+    canvas.onmouseleave=()=>drawing=false;
+    canvas.addEventListener("touchstart",e=>{
+      e.preventDefault();drawing=true;
+      const rect=canvas.getBoundingClientRect();
+      ctx.beginPath();ctx.moveTo(e.touches[0].clientX-rect.left,e.touches[0].clientY-rect.top);
+    });
+    canvas.addEventListener("touchmove",e=>{
+      e.preventDefault();if(drawing){
+        const rect=canvas.getBoundingClientRect();
+        ctx.lineTo(e.touches[0].clientX-rect.left,e.touches[0].clientY-rect.top);ctx.stroke();
+      }
+    });
+    canvas.addEventListener("touchend",()=>drawing=false);
+  });
+}
+
+// --------- GUARDAR FIRMA CON VALIDACIÓN ----------
+async function guardarFirma(numero){
+  const canvas=document.querySelector(`canvas[data-numero='${numero}']`);
+  const inputFecha=document.querySelector(`input[type='date'][data-numero='${numero}']`);
+  if(!canvas||!inputFecha)return;
+
+  const firma=canvas.toDataURL();
+  // Validar que la firma es PNG y tiene suficiente información (no vacía ni corrupta)
+  if (!firma.startsWith("data:image/png") || firma.length < 300) {
+    alert("Firma vacía o inválida. Por favor firme antes de guardar.");
+    return;
+  }
+  const fecha=inputFecha.value;
+
+  const key=getKey();
+  let registro=historicoFirmas.find(r=>r.id===key);
+  const persona=registro.personas.find(p=>p.numero===numero);
+
+  persona.historialFirmas.push({fecha,firma,documento:docActivo,revision:revisionActiva});
+
+  await guardarEnIndexedDB("asistenciaILUO_HistoricoHorizontal",historicoFirmas);
+  renderMatriz();
+}
+
+// ========== Zoom Firma ==========
+function zoomFirma(src){
+  document.getElementById('imgZoom').src=src;
+  document.getElementById('modalZoom').classList.add('show');
+}
+function cerrarZoom(){
+  document.getElementById('modalZoom').classList.remove('show');
+}
+
+// ========== Exportar Excel ==========
+function exportarExcel(){
+  const table=document.querySelector("table");
+  const wb=XLSX.utils.table_to_book(table,{sheet:"Asistencia ILUO"});
+  XLSX.writeFile(wb,`Asistencia_ILUO_${areaActiva}_${puestoActivo}_${docActivo}.xlsx`);
+}
+
+// ========== Exportar PDF ========== 
+function exportarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('l', 'pt', 'a4');
+
+  const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAAyCAYAAACqn1pzAAABXklEQVR4nO3YsQ3CMBAG0MyT9ZAsbAhloQhs0sGSh9HbBKFhzXEX2slgW3p2/B7nx6dHJycnJycnJycnJycnJycnJ2Q1u4SxuGma4AxkIYQ1gD4nYAVQPvCngAiGMYB1wB5AWAAcBD8hvAFgADQAvCd0BBsAVyDWADrAQv8w5TAAyUuA+8AH+Qw5wHQwHuQbk6HgBHuABtgH7gBuQB8cN8BQABDA6j4AtQAQwOo+ALUAEADp6/nx6dHJycnJycnJycnJycnJycnJycnJycnJycnJydnOL9ABH5MC0xIAAAAAASUVORK5CYII=";
+  doc.addImage(logoBase64, 'PNG', 40, 20, 120, 50);
+  doc.setFontSize(16);
+  doc.text("Lista de Asistencia ILUO", 180, 45);
+  doc.setFontSize(11);
+  doc.text(`Área: ${areaActiva} | Puesto: ${puestoActivo} | Documento: ${docActivo || 'N/A'} (Rev: ${revisionActiva || 'N/A'})`, 180, 65);
+
+  const key = getKey();
+  let registro = historicoFirmas.find(r => r.id === key);
+  if (!registro) { alert("No hay datos para exportar."); return; }
+
+  const fechasUnicas = [...new Set(registro.personas.flatMap(p =>
+    p.historialFirmas.map(h => `${h.fecha} (R${h.revision||''})`)
+  ))].sort();
+
+  const startX = 40;
+  let startY = 110;
+  const cellHeight = 70;
+  const colWidths = [35, 140, 120, 90];
+
+  // Encabezado tabla
+  let x = startX;
+  const headers = ["Número", "Nombre", "Puesto", "Área", ...fechasUnicas];
+  headers.forEach((h, i) => {
+    doc.setFontSize(9);
+    doc.setFillColor(4,81,148);
+    doc.setTextColor(255,255,255);
+    doc.rect(x, startY, (i<4?colWidths[i]:100), 20, 'F');
+    doc.text(h, x+2, startY+14, {maxWidth: (i<4?colWidths[i]-4:96)});
+    x += (i<4?colWidths[i]:100);
+  });
+
+  startY += 20;
+  registro.personas.forEach(persona => {
+    let x = startX;
+    doc.setTextColor(0,0,0);
+    doc.text(persona.numero.toString(), x+2, startY+14); x+=colWidths[0];
+    doc.text(doc.splitTextToSize(persona.nombre, colWidths[1]-4), x+2, startY+14); x+=colWidths[1];
+    doc.text(doc.splitTextToSize(persona.puesto, colWidths[2]-4), x+2, startY+14); x+=colWidths[2];
+    doc.text(doc.splitTextToSize(persona.area, colWidths[3]-4), x+2, startY+14); x+=colWidths[3];
+
+    fechasUnicas.forEach(f => {
+      const [fechaSolo] = f.split(" ");
+      const firma = persona.historialFirmas.find(x=>x.fecha===fechaSolo)?.firma||"";
+
+      doc.setDrawColor(4,81,148);
+      doc.rect(x, startY, 100, cellHeight);
+
+      // Solo agrega si es PNG válido
+      if(firma && firma.startsWith("data:image/png") && firma.length > 100) {
+        try { 
+          doc.addImage(firma,'PNG',x+2,startY+2,96,cellHeight-4); 
+        } catch(e){ 
+          console.warn("Firma corrupta ignorada:", e); 
+        }
+      }
+      x += 100;
+    });
+
+    startY += cellHeight;
+    if(startY > 520){
+      doc.addPage();
+      startY = 60;
+    }
+  });
+
+  doc.save(`Asistencia_ILUO_${areaActiva}_${puestoActivo}_${docActivo || 'Doc'}.pdf`);
+}
+
+// ========== Eliminar firma ==========
+async function eliminarFirma(numero, fecha){
+  const pass = prompt("Ingrese la contraseña para eliminar esta firma:");
+  if(pass !== "Isovolta2025"){ 
+    alert("Contraseña incorrecta"); 
+    return; 
+  }
+  const key = getKey();
+  let registro = historicoFirmas.find(r => r.id === key);
+  if(!registro) return;
+
+  let persona = registro.personas.find(p => p.numero === numero);
+  if(!persona) return;
+
+  persona.historialFirmas = persona.historialFirmas.filter(f => f.fecha !== fecha);
+  await guardarEnIndexedDB("asistenciaILUO_HistoricoHorizontal", historicoFirmas);
+  renderMatriz();
+}
+</script>
+</body>
+</html>

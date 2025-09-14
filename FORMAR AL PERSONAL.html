@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FOP · Vista Máxima</title>
+  <link rel="icon" type="image/png" href="Isovolta.ico">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root{
+      --ink:#0f172a; --ink-2:#4b5563;
+      --bg:#f6f8fc; --card:#ffffff; --line:#e6eaf2;
+      --accent:#f4c600; --accent-soft:#ffe480; --focus:#0ea5e9;
+      /* Altura combinada (se define por JS) */
+      --chrome: 220px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:var(--bg); color:var(--ink);
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      display:flex; flex-direction:column; min-height:100dvh;
+    }
+
+    /* ===== Topbar compacto ===== */
+    .topbar{position:sticky; top:0; z-index:50; background:var(--card)}
+    .topbar__strip{height:4px; background:var(--accent)}
+    .topbar__inner{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:10px 14px; border-bottom:1px solid var(--line);
+      box-shadow:0 2px 8px rgba(0,0,0,.04);
+    }
+    .brand{display:flex; align-items:center; gap:10px}
+    .brand img{height:30px}
+    .brand h1{margin:0; font-weight:800; font-size:16px; white-space:nowrap}
+    .breadcrumbs{font-size:12px; color:var(--ink-2)}
+
+    /* ===== Subnav (tabs) ===== */
+    .subnav{position:sticky; top:54px; z-index:45; background:var(--card); border-bottom:1px solid var(--line)}
+    .tabs{
+      width:min(99vw,1920px); margin:0 auto; padding:6px 8px;
+      display:flex; flex-wrap:wrap; gap:6px;
+    }
+    .tab{
+      appearance:none; background:#f7f9ff; border:1px solid var(--line);
+      color:var(--ink); font-weight:700; font-size:13px;
+      padding:8px 12px; border-radius:10px; display:inline-flex; align-items:center; gap:6px;
+      cursor:pointer; transition:background .15s, border-color .15s, box-shadow .15s;
+    }
+    .tab i[data-lucide]{width:16px;height:16px;color:#374151}
+    .tab:hover{ background:#fff; border-color:var(--accent) }
+    .tab:focus-visible{ outline:3px solid var(--focus); outline-offset:2px }
+    .tab .badge{ margin-left:6px; background:var(--accent); color:#111; padding:0 7px; border-radius:999px; font-size:11px; font-weight:800 }
+    .tab.active{ background:#fff; border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft) }
+
+    /* ===== Panel & visor ===== */
+    main{flex:1; display:flex; justify-content:center; padding:8px 0}
+    .panel{
+      width:min(99vw,1920px); margin:0 auto;
+      background:var(--card); border:1px solid var(--line); border-radius:14px;
+      box-shadow:0 8px 28px rgba(0,0,0,.05);
+      display:flex; flex-direction:column; overflow:hidden;
+      min-height:calc(100dvh - 140px);
+    }
+    .panel__head{
+      padding:10px 14px; border-bottom:1px solid var(--line);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background:linear-gradient(180deg,#fff,#fafcff);
+    }
+    .panel__title{ font-size:16px; font-weight:800 }
+    .panel__meta{ font-size:12px; color:var(--ink-2) }
+    .panel__body{ flex:1; min-height:0 }
+    #visor{
+      display:block; width:100%;
+      height:calc(100dvh - var(--chrome));     /* ← se ajusta con JS */
+      min-height:75vh; border:0; background:var(--bg);
+    }
+
+    /* ===== Botón de expansión ===== */
+    .expand-btn{
+      position:fixed; right:16px; bottom:16px; z-index:70;
+      display:inline-flex; align-items:center; gap:8px;
+      background:#111827; color:#fff; border:1px solid #0b1220;
+      padding:10px 12px; border-radius:12px; font-weight:800; cursor:pointer;
+      box-shadow:0 12px 28px rgba(2,6,23,.25);
+    }
+    .expand-btn:hover{ filter:brightness(1.05) }
+    .expand-btn i[data-lucide]{width:18px;height:18px}
+
+    /* ===== MODO MÁXIMO ===== */
+    body.max-view .topbar,
+    body.max-view .subnav,
+    body.max-view .panel__head{ display:none !important; }
+    body.max-view main{ padding:0 }
+    body.max-view .panel{
+      width:100vw; height:100dvh; border:0; border-radius:0; box-shadow:none;
+    }
+    body.max-view #visor{
+      height:100dvh; min-height:100dvh; background:#000; /* fondo neutro */
+    }
+
+    @media (max-width:768px){
+      .brand h1{font-size:14px}
+      .tab{font-size:12px; padding:7px 10px}
+      .expand-btn{ right:10px; bottom:10px }
+    }
+  </style>
+</head>
+<body>
+  <!-- TOPBAR -->
+  <header class="topbar" id="topbar">
+    <div class="topbar__strip"></div>
+    <div class="topbar__inner">
+      <div class="brand">
+        <img src="https://www.isovolta.com/logo_isovolta.png" alt="ISOVOLTA">
+        <h1>(FOP) — Formación del Personal</h1>
+      </div>
+      <div class="breadcrumbs" id="crumbs">INICIO</div>
+    </div>
+  </header>
+
+  <!-- SUBNAV -->
+  <nav class="subnav" id="subnav">
+    <div class="tabs" id="tabs">
+      <button class="tab" data-url="FOP/Matriz_iluo.html"                data-name="Ficha de Talento"><i data-lucide="id-card"></i> Ficha de Talento</button>
+      <button class="tab" data-url="FOP/Matriz de capacitacion.html" data-name="Matriz de Capacitación"><i data-lucide="graduation-cap"></i> Matriz de Capacitación</button>
+      <button class="tab" data-url="FOP/Matriz Competencias.html"           data-name="Matriz de Competencias"><i data-lucide="badge-check"></i> Matriz de Competencias</button>
+      <button class="tab" data-url="FOP/Lista_Asistencia.html"           data-name="Lista de Asistencia"><i data-lucide="clipboard-list"></i> Lista de Asistencia</button>
+      <button class="tab" data-url="FOP/Examenes.html"            data-name="Exámenes"><i data-lucide="file-check-2"></i> Exámenes</button>
+      <button class="tab" data-url="FOP/Administrador.html"              data-name="Administrador de Documentos"><i data-lucide="settings-2"></i> Administrador de Documentos <span class="badge"></span></button>
+      <button class="tab" data-url="FOP/Calificaciones.html"             data-name="Calificaciones"><i data-lucide="check-circle-2"></i> Calificaciones</button>
+      <button class="tab" data-url="FOP/Pendientes_reentrenar.html"      data-name="Re-entrenamiento"><i data-lucide="refresh-ccw"></i> Re-entrenamiento</button>
+      <button class="tab" data-url="FOP/Personas_iluo.html"              data-name="Gestor de Personas"><i data-lucide="users-2"></i> Gestor de Personas</button>
+      <button class="tab" data-url="FOP/Gantt.html"                      data-name="Programa de Capacitación"><i data-lucide="calendar-range"></i> Programa de Capacitación</button>   
+    </div>
+  </nav>
+
+  <!-- PANEL VISOR -->
+  <main>
+    <section class="panel">
+      <div class="panel__head" id="panelHead">
+        <div class="panel__title" id="docTitle">Selecciona un documento</div>
+        <div class="panel__meta"  id="docMeta">Mostrando dentro de esta página</div>
+      </div>
+      <div class="panel__body">
+        <!-- allowfullscreen para fullscreen nativo si lo deseas -->
+        <iframe id="visor" title="Visor de documentos" allow="fullscreen" allowfullscreen></iframe>
+      </div>
+    </section>
+  </main>
+
+  <!-- Botón de expansión -->
+  <button class="expand-btn" id="expandBtn" title="Expandir/Restaurar (F)">
+    <i data-lucide="maximize-2"></i> <span>Expandir</span>
+  </button>
+
+  <script>
+    if(window.lucide) lucide.createIcons({ attrs:{'stroke-width':1.6} });
+
+    (function(){
+      const visor   = document.getElementById('visor');
+      const crumbs  = document.getElementById('crumbs');
+      const titleEl = document.getElementById('docTitle');
+      const metaEl  = document.getElementById('docMeta');
+      const topbar  = document.getElementById('topbar');
+      const subnav  = document.getElementById('subnav');
+      const head    = document.getElementById('panelHead');
+      const expand  = document.getElementById('expandBtn');
+
+      // ---- Cargar dentro del visor
+      function loadHere(url, name){
+        if(!visor) return;
+        visor.src = url;
+        titleEl.textContent = name || 'Documento';
+        crumbs.textContent  = 'FORMACIÓN DEL PERSONAL → ' + (name || 'Documento');
+        metaEl.textContent  = 'Mostrando dentro de esta página';
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+        const btn = [...document.querySelectorAll('.tab')].find(t=>t.dataset.url===url);
+        if(btn) btn.classList.add('active');
+      }
+      document.querySelectorAll('.tab').forEach(btn=>{
+        btn.addEventListener('click', ()=> loadHere(btn.dataset.url, btn.dataset.name));
+        btn.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); btn.click(); }});
+      });
+
+      // ---- Calcular altura útil del visor (100dvh - chrome)
+      function setChromeHeight(){
+        const h = (topbar?.offsetHeight||0) + (subnav?.offsetHeight||0) + (head?.offsetHeight||0) + 16; // margen de seguridad
+        document.documentElement.style.setProperty('--chrome', h + 'px');
+      }
+      const ro = new ResizeObserver(setChromeHeight);
+      [topbar, subnav, head].forEach(el=> el && ro.observe(el));
+      window.addEventListener('resize', setChromeHeight, {passive:true});
+      window.addEventListener('orientationchange', setChromeHeight);
+      setChromeHeight();
+
+      // ---- Modo máximo (oculta chrome) con tecla F / botón
+      function toggleMax(){
+        const body = document.body;
+        const max  = body.classList.toggle('max-view');
+        const icon = max ? 'minimize-2' : 'maximize-2';
+        expand.querySelector('i').setAttribute('data-lucide', icon);
+        expand.querySelector('span').textContent = max ? 'Restaurar' : 'Expandir';
+        if(window.lucide) lucide.createIcons({ attrs:{'stroke-width':1.6} });
+        setChromeHeight(); // recalcula
+      }
+      expand.addEventListener('click', toggleMax);
+      window.addEventListener('keydown', (e)=>{
+        if(e.key.toLowerCase()==='f'){ toggleMax(); }
+        if(e.key==='Escape' && document.body.classList.contains('max-view')){ toggleMax(); }
+      });
+
+      // (Opcional) abrir por defecto la primera pestaña:
+      // const first = document.querySelector('.tab'); if(first) first.click();
+    })();
+  </script>
+</body>
+</html>

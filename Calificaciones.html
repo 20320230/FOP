@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <title>Calificaciones de entrenamientos</title>
+  <link href="Isovolta.ico" rel="icon" type="image/png"/>
+  <!-- FontAwesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+  <style>
+    :root {
+      --azul1: #004990;
+      --azul2: #0053b3;
+      --amarillo: #ffd60a;
+      --amarillo-soft: #fffbe6;
+      --gris: #f4f7fb;
+      --fondo-table: #f8fafc;
+      --white: #fff;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--gris);
+      margin: 0;
+      padding: 0 0 68px 0;
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      background: var(--white);
+      border-bottom: 5px solid var(--azul1);
+      box-shadow: 0 2px 18px #00499011;
+      padding: 0 18px 0 18px;
+      min-height: 69px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header img {
+      height: 48px;
+      margin-right: 16px;
+    }
+    header h1 {
+      color: var(--azul1);
+      font-size: 1.45em;
+      font-weight: 900;
+      flex: 1;
+      margin: 0 18px 0 0;
+      letter-spacing: 1.2px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+    .header-actions {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+    }
+    .btn {
+      background: var(--azul2);
+      color: white;
+      padding: 9px 19px;
+      border: none;
+      border-radius: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background .13s, box-shadow .12s, transform .11s;
+      box-shadow: 0 2px 7px #00499010;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .btn i { font-size: 1.1em; }
+    .btn:hover {
+      background: #ffd60a;
+      color: var(--azul1);
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 7px 22px #ffd60a38;
+    }
+    /* Barra de filtros corporativa y minimalista */
+    .filtros-barra {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin: 27px auto 18px auto;
+      align-items: center;
+      background: var(--amarillo-soft);
+      padding: 14px 30px 11px 30px;
+      border-radius: 13px;
+      max-width: 1200px;
+      box-shadow: 0 3px 8px #00499011;
+      font-weight: 600;
+      font-size: 1.08em;
+      justify-content: flex-start;
+    }
+    .filtro-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .filtros-barra label {
+      color: #2d3b4d;
+      font-size: 1em;
+      font-weight: 600;
+      margin-right: 3px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .filtros-barra select, .filtros-barra input[type="number"], .filtros-barra input[type="text"] {
+      padding: 8px 15px;
+      border-radius: 9px;
+      border: 1.5px solid #bcd2ea;
+      font-size: 1em;
+      background: #fff;
+      color: #004990;
+      font-weight: 500;
+      transition: border-color .13s;
+      box-shadow: 0 1px 4px #0049900b;
+      outline: none;
+      min-width: 120px;
+    }
+    .filtros-barra select:focus, .filtros-barra input:focus {
+      border-color: #004990;
+      background: #eaf1fc;
+    }
+    @media (max-width: 900px) {
+      .filtros-barra {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 13px;
+        font-size: 1em;
+        padding: 10px 2vw 9px 2vw;
+      }
+      .filtro-group { width: 100%; }
+    }
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 6px 18px #00499012;
+      padding: 5px 10px 20px 10px;
+      margin-bottom: 30px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--fondo-table);
+      margin-top: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 15.2px;
+    }
+    th, td {
+      border: 1px solid #bcd2ea;
+      padding: 10px 6px;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 15px;
+      background: none;
+    }
+    th {
+      background: var(--azul1);
+      color: #fff;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      letter-spacing: 0.18px;
+      border-bottom: 3px solid var(--amarillo);
+    }
+    tr:nth-child(even) td { background: #f7fafd;}
+    tbody tr:hover td {
+      background: #ffe16a40;
+      transition: background .14s;
+      cursor: pointer;
+      font-weight: 600;
+      color: #013169;
+    }
+    @media (max-width: 1100px) {
+      .main-container { padding: 6px 2vw 12px 2vw;}
+      table, th, td { font-size: 13px;}
+      header h1 { font-size: 1.08em;}
+      header img { height: 37px;}
+    }
+    @media (max-width: 750px) {
+      header { flex-direction: column; align-items: flex-start; padding: 9px 8px 7px 9px;}
+      .main-container { padding: 3px 2vw 2px 2vw;}
+      table, th, td { font-size: 10.7px;}
+      .header-actions { gap: 2px;}
+    }
+    footer {
+      width: 100vw;
+      background: #004990;
+      color: #fff;
+      text-align: center;
+      padding: 10px 0 6px 0;
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      font-size: 1.03em;
+      letter-spacing: 0.7px;
+      z-index: 100;
+      border-bottom-left-radius: 9px;
+      border-bottom-right-radius: 9px;
+      box-shadow: 0 1px 7px #00499021;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <img src="https://www.isovolta.com/logo_isovolta.png" alt="Logo Isovolta"/>
+  <h1>
+    <i class="fas fa-graduation-cap" style="color: #ffd60a; font-size: 1.17em;"></i>
+    Calificaciones de entrenamientos
+  </h1>
+  <div class="header-actions">
+
+  </div>
+</header>
+
+<!-- Barra de filtros corporativa y compacta -->
+<div class="filtros-barra">
+  <div class="filtro-group">
+    <label for="filtroArea"><i class="fas fa-layer-group"></i> Área:</label>
+    <select id="filtroArea"><option value="todas">Todas</option></select>
+  </div>
+  <div class="filtro-group">
+    <label for="filtroILUO"><i class="fas fa-signal"></i> Nivel ILUO:</label>
+    <select id="filtroILUO">
+      <option value="todos">Todos</option>
+      <option value="NA">NA</option>
+      <option value="I">I</option>
+      <option value="L">L</option>
+      <option value="U">U</option>
+      <option value="O">O</option>
+    </select>
+  </div>
+  <div class="filtro-group">
+    <label for="filtroCalificacion"><i class="fas fa-star"></i> Calificación:</label>
+    <input id="filtroCalificacion" type="number" min="0" max="100" placeholder="Ej: 85">
+  </div>
+</div>
+
+<div class="main-container">
+  <table id="tablaNA">
+    <thead>
+      <tr>
+        <th>Número</th>
+        <th>Nombre</th>
+        <th>Área</th>
+        <th>Código</th>
+        <th>Documento</th>
+        <th>Calificación</th>
+        <th>Nivel ILUO</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+
+<script>
+// ========== IndexedDB Helper ==========
+const DB_NAME = 'ILUO_DB';
+const DB_VERSION = 1;
+const STORE_NAME = 'respaldo';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'clave' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
+
+async function guardarEnIndexedDB(clave, valor) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.put({ clave, valor });
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function leerDeIndexedDB(clave) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.get(clave);
+    req.onsuccess = () => resolve(req.result ? req.result.valor : null);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+// ========== Migrar de localStorage ==========
+async function migrarLocalStorageAIndexedDB() {
+  const claves = ["matrizILUO", "documentosILUO"];
+  for (let clave of claves) {
+    const val = localStorage.getItem(clave);
+    if (val && !(await leerDeIndexedDB(clave))) {
+      await guardarEnIndexedDB(clave, JSON.parse(val));
+    }
+  }
+}
+
+// ========== Utilidades ==========
+function calcularNivelILUO(valor) {
+  if (valor >= 95) return "O";
+  if (valor >= 90) return "U";
+  if (valor >= 80) return "L";
+  if (valor >= 70) return "I";
+  if (valor >= 50) return "NA";
+  return "-";
+}
+
+// ========== Carga y Filtros ==========
+let operadores = [];
+let documentos = [];
+
+async function cargarDatos() {
+  await migrarLocalStorageAIndexedDB();
+  operadores = await leerDeIndexedDB("matrizILUO") || [];
+  documentos = await leerDeIndexedDB("documentosILUO") || [];
+  llenarFiltroAreas();
+  renderTabla();
+}
+
+function llenarFiltroAreas() {
+  // Extrae áreas únicas
+  const areasSet = new Set();
+  operadores.forEach(op => {
+    if (op.area) areasSet.add(op.area);
+  });
+  const filtroArea = document.getElementById("filtroArea");
+  filtroArea.innerHTML = `<option value="todas">Todas</option>`;
+  Array.from(areasSet).sort().forEach(area => {
+    filtroArea.innerHTML += `<option value="${area}">${area}</option>`;
+  });
+}
+
+// ========== Renderizado ==========
+function renderTabla() {
+  const tbody = document.querySelector("#tablaNA tbody");
+  tbody.innerHTML = "";
+  const areaFiltro = document.getElementById("filtroArea").value;
+  const nivelFiltro = document.getElementById("filtroILUO").value;
+  const califFiltro = document.getElementById("filtroCalificacion").value.trim();
+
+  operadores.forEach(op => {
+    if (Array.isArray(op.documentacion)) {
+      op.documentacion.forEach(doc => {
+        const ref = documentos.find(d => d.codigo === doc.codigo);
+        if (!ref) return;
+
+        // Filtros:
+        // Área
+        if (areaFiltro !== "todas" && op.area !== areaFiltro) return;
+        // Calificación
+        let matchCalif = true;
+        if (califFiltro !== "") {
+          if (doc.calificacion == null || doc.calificacion === "") matchCalif = false;
+          else matchCalif = String(doc.calificacion).includes(califFiltro);
+        }
+        if (!matchCalif) return;
+        // Nivel ILUO
+        const nivel = calcularNivelILUO(parseFloat(doc.calificacion));
+        if (nivelFiltro !== "todos" && nivel !== nivelFiltro) return;
+
+        // Render fila
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${op.numero}</td>
+          <td>${op.nombre}</td>
+          <td>${op.area}</td>
+          <td>${doc.codigo}</td>
+          <td>${ref.documento}</td>
+          <td>${doc.calificacion || "-"}</td>
+          <td>${nivel}</td>
+        `;
+        tbody.appendChild(fila);
+      });
+    }
+  });
+}
+
+// ========== Listeners para filtros ==========
+document.getElementById("filtroArea").addEventListener("change", renderTabla);
+document.getElementById("filtroILUO").addEventListener("change", renderTabla);
+document.getElementById("filtroCalificacion").addEventListener("input", renderTabla);
+
+window.onload = cargarDatos;
+</script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>ILUO - Revisión y Pendientes</title>
+  <link rel="icon" type="image/png" href="Isovolta.ico">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f3f6fb;
+      margin: 0;
+      padding: 0 0 70px 0;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      border-bottom: 5px solid #004990;
+      box-shadow: 0 3px 15px 0 rgba(0,32,91,0.07);
+      padding: 0 26px 10px 0;
+      min-height: 64px;
+    }
+    header h1 {
+      color: #004990;
+      font-size: 2em;
+      font-weight: 700;
+      margin: 0 0 0 32px;
+      letter-spacing: 1px;
+    }
+    .logo-isovolta { height: 56px; }
+    .toolbar {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin: 36px auto 30px auto;
+      flex-wrap: wrap;
+    }
+    .btn {
+      background-color: #004990;
+      color: white;
+      padding: 10px 22px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1em;
+      box-shadow: 0 2px 8px rgba(0,32,91,0.09);
+      cursor: pointer;
+      transition: background .16s, box-shadow .13s, transform .12s;
+      outline: none;
+      margin: 0 6px 0 0;
+    }
+    .btn:hover {
+      background: #0073d6;
+      box-shadow: 0 5px 20px rgba(0,32,91,0.13);
+      transform: translateY(-2px) scale(1.045);
+    }
+    .main-container {
+      max-width: 1250px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(0,32,91,0.07);
+      padding: 30px 30px 12px 30px;
+      margin-bottom: 30px;
+    }
+    .filters {
+      display: flex;
+      gap: 18px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .filters select, .filters input {
+      padding: 8px 14px;
+      border: 1px solid #bccbe2;
+      border-radius: 7px;
+      font-size: 1em;
+      background: #f7fafc;
+      min-width: 180px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 10px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 16px rgba(0,32,91,0.05);
+    }
+    th, td {
+      padding: 12px 10px;
+      border: 1px solid #dee3ef;
+      text-align: center;
+      vertical-align: middle;
+    }
+    th {
+      background: #015197;
+      color: #fff;
+      font-size: 1.02em;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      border-bottom: 2.5px solid #004990;
+      white-space: nowrap;
+    }
+    tr.pending-row {
+      background: #fffbe6 !important;
+      font-weight: 500;
+      color: #444a00;
+      transition: background 0.18s;
+    }
+    tbody tr:hover {
+      background: #eaf1fb;
+      transition: background 0.18s;
+    }
+    td {
+      font-size: 14px;
+      background: #fff;
+    }
+    .icon-info {
+      font-size: 3.1em;
+      color: #b8bfcf;
+      vertical-align: middle;
+      margin-right: 12px;
+    }
+    .no-pendientes-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 34px 0 18px 0;
+      font-size: 1.22em;
+      color: #2979b8;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+    }
+    @media (max-width: 900px) {
+      .main-container { padding: 12px 2vw; }
+      table { font-size: 12px; }
+      th, td { padding: 8px 3px; }
+      header h1 { font-size: 1.3em; margin-left: 5px;}
+    }
+    @media (max-width: 600px) {
+      .main-container { padding: 3px 0vw 2px 0vw;}
+      table, th, td { font-size: 10px;}
+      .toolbar { gap: 5px;}
+      .filters { flex-direction: column; gap: 6px;}
+      .btn { padding: 7px 7px; font-size: 0.96em;}
+    }
+    footer {
+      width: 100vw;
+      background: #00529b;
+      color: #fff;
+      text-align: center;
+      padding: 13px 0 10px 0;
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      font-size: 1.09em;
+      letter-spacing: 0.8px;
+      z-index: 50;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Pendientes por Reentrenar</h1>
+  <img alt="Isovolta Logo" src="https://www.isovolta.com/logo_isovolta.png" class="logo-isovolta"/>
+</header>
+
+<div class="toolbar">
+  <button class="btn" onclick="detectarPendientes()">Actualizar</button>
+</div>
+
+<div class="main-container">
+  <div class="filters">
+    <select id="filtroArea" onchange="filtrarTabla()">
+      <option value="">-- Filtrar por Área --</option>
+    </select>
+    <select id="filtroCapacitador" onchange="filtrarTabla()">
+      <option value="">-- Filtrar por Capacitador --</option>
+    </select>
+    <input type="text" id="filtroNombre" oninput="filtrarTabla()" placeholder="Filtrar por Nombre o Código...">
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th class="numero">Número</th>
+        <th class="nombre">Nombre</th>
+        <th class="codigo">Código Documento</th>
+        <th class="docnombre">Nombre del Documento</th>
+        <th class="rev">Revisión Registrada</th>
+        <th class="rev">Revisión Actual</th>
+        <th class="area">Área</th>
+        <th class="capacitador">Capacitador</th>
+      </tr>
+    </thead>
+    <tbody id="tablaPendientes">
+      <tr><td colspan="8" class="no-pendientes-box"><span class="icon-info">ℹ️</span>Presiona el botón para detectar pendientes.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+/* ---------------- IndexedDB ---------------- */
+const DB_NAME = 'ILUO_DB';
+const DB_VERSION = 1;
+const STORE_NAME = 'respaldo';
+
+let listaPendientes = [];
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'clave' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
+
+async function leerDeIndexedDB(clave) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.get(clave);
+    req.onsuccess = () => resolve(req.result ? req.result.valor : null);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+/* ---------------- Utilidades ---------------- */
+function uniqueValues(arr, prop) {
+  return [...new Set(arr.map(x => x[prop]).filter(Boolean))].sort();
+}
+
+// Normalizador (quita acentos/espacios; mayúsculas)
+const norm = s => String(s ?? "")
+  .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+  .replace(/\s+/g, " ").trim().toUpperCase();
+
+const keyDoc = (codigo, area) => `${norm(codigo)}|${norm(area)}`;
+
+const getAreaPersona = (p) => p.area ?? p.Area ?? p.área ?? "";
+
+/* ---------------- Render filtrado ---------------- */
+function filtrarTabla() {
+  const area = document.getElementById('filtroArea').value;
+  const cap = document.getElementById('filtroCapacitador').value;
+  const texto = document.getElementById('filtroNombre').value.trim().toLowerCase();
+
+  const tbody = document.getElementById("tablaPendientes");
+  tbody.innerHTML = "";
+
+  let filtrados = listaPendientes.slice();
+
+  if (area) filtrados = filtrados.filter(x => (x.area||'') === area);
+  if (cap) filtrados = filtrados.filter(x => (x.capacitador||'') === cap);
+  if (texto) {
+    filtrados = filtrados.filter(x =>
+      (x.nombre && x.nombre.toLowerCase().includes(texto)) ||
+      (x.codigo && x.codigo.toLowerCase().includes(texto))
+    );
+  }
+
+  if (!filtrados.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="no-pendientes-box">
+      <span class="icon-info">✅</span>No hay personas pendientes por reentrenar.
+    </td></tr>`;
+    return;
+  }
+
+  filtrados.forEach(p => {
+    const fila = document.createElement("tr");
+    fila.className = "pending-row";
+    fila.innerHTML = `
+      <td>${p.numero}</td>
+      <td>${p.nombre}</td>
+      <td>${p.codigo}</td>
+      <td>${p.documento}</td>
+      <td>${p.revRegistrada}</td>
+      <td>${p.revActual}</td>
+      <td>${p.area}</td>
+      <td>${p.capacitador||""}</td>
+    `;
+    tbody.appendChild(fila);
+  });
+}
+
+/* ---------------- Detección de pendientes ---------------- */
+async function detectarPendientes() {
+  const documentos = await leerDeIndexedDB("documentosILUO") || [];
+  const personas   = await leerDeIndexedDB("matrizILUO")     || [];
+
+  // Índice de documentos por (codigo + área) para evitar colisiones entre áreas
+  const docsByCodeArea = new Map(
+    documentos.map(d => [ keyDoc(d.codigo, d.area), d ])
+  );
+
+  const pendientes = [];
+
+  personas.forEach(p => {
+    const areaPersona = getAreaPersona(p);
+    (p.documentacion || []).forEach(doc => {
+      const actual = docsByCodeArea.get(keyDoc(doc.codigo, areaPersona));
+      if (!actual) return; // No hay ese documento para esa área
+
+      if (String(actual.revision) !== String(doc.revision)) {
+        pendientes.push({
+          numero:        p.numero,
+          nombre:        p.nombre,
+          codigo:        doc.codigo,
+          documento:     actual.documento,
+          revRegistrada: doc.revision,
+          revActual:     actual.revision,
+          area:          areaPersona,             // área del operador
+          capacitador:   actual.capacitador || ""
+        });
+      }
+    });
+  });
+
+  listaPendientes = pendientes;
+
+  /* ------ Llenar filtros con TODO el catálogo ------ */
+  // Todas las áreas de la matriz (personas), aunque no tengan pendientes
+  const todasLasAreas = [...new Set(
+    personas.map(getAreaPersona).filter(Boolean)
+  )].sort();
+
+  // Todos los capacitadores definidos en documentos
+  const todosCapacitadores = [...new Set(
+    documentos.map(d => d.capacitador).filter(Boolean)
+  )].sort();
+
+  document.getElementById('filtroArea').innerHTML =
+    `<option value="">-- Filtrar por Área --</option>` +
+    todasLasAreas.map(a => `<option value="${a}">${a}</option>`).join('');
+
+  document.getElementById('filtroCapacitador').innerHTML =
+    `<option value="">-- Filtrar por Capacitador --</option>` +
+    todosCapacitadores.map(a => `<option value="${a}">${a}</option>`).join('');
+
+  // Render
+  filtrarTabla();
+}
+</script>
+
+
+</body>
+</html>

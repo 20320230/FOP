@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>RQ-1202-FOP Matriz de Capacitación</title>
+  <link rel="icon" type="image/png" href="Isovolta.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --azul:#004990; --azul-2:#0a63c6;
+      --bg:#f4f7fb; --card:#ffffff; --ink:#0f172a; --muted:#5b6b7a;
+      --ok:#22c55e; --warn:#f6c800; --err:#e74c3c;
+      --shadow:0 6px 18px rgba(0,32,91,.08); --shadow-h:0 10px 24px rgba(0,32,91,.12);
+      --r:14px; --r-sm:10px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      font-family:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+      background:var(--bg); margin:0; padding:0 0 90px 0; color:var(--ink);
+    }
+
+    .main-container{
+      max-width: 1480px; margin: 36px auto 30px; background:var(--card);
+      border-radius: 16px; box-shadow: var(--shadow); padding: 18px 22px 22px;
+    }
+
+    header{
+      display:flex; align-items:center; gap:16px; padding: 10px 8px 14px 4px;
+      border-bottom:4px solid var(--azul); border-top-left-radius:16px; border-top-right-radius:16px;
+      background:var(--card);
+    }
+    header img{ height:56px; }
+    h1{ color:var(--azul); margin:0; font-size:1.9rem; letter-spacing:.4px; font-weight:800; }
+
+    .summary-top{
+      margin-left:auto; color:#222; font-weight:600; font-size:1rem;
+    }
+
+    /* Barra de controles sticky */
+    .toolbar{
+      position:sticky; top:8px; z-index:5; margin:14px 0 8px;
+      background:linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,.86));
+      border:1px solid #e6ecf5; border-radius:14px; padding:12px; box-shadow: var(--shadow);
+    }
+    .controls{
+      display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; justify-content:space-between;
+    }
+    .controls-left{display:flex; flex-wrap:wrap; gap:10px 12px; align-items:center;}
+    .controls-right{display:flex; gap:8px; align-items:center;}
+
+    .input{
+      padding:10px 14px; border:1px solid #c9d5e9; border-radius:10px; width:280px; font-size:1rem;
+      background:#f7fafc; transition:border-color .18s, background .18s, box-shadow .18s;
+    }
+    .input:focus{ border-color:var(--azul); background:#eef6ff; outline:none; box-shadow:0 0 0 3px rgba(0,73,144,.15); }
+
+    .btn{
+      background:var(--azul); color:#fff; padding:10px 16px; border:none; border-radius:10px;
+      cursor:pointer; font-weight:800; letter-spacing:.2px;
+      box-shadow:0 6px 16px rgba(0,73,144,.18);
+      transition:transform .12s ease, box-shadow .12s ease, background .15s ease;
+    }
+    .btn:hover{ transform:translateY(-1px); box-shadow:var(--shadow-h); background:var(--azul-2); }
+    .btn:active{ transform:translateY(0); }
+
+    /* Chips de filtro por área */
+    .chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .chip{
+      border:none; background:#eaf2ff; color:#07396b; padding:8px 12px; border-radius:999px; cursor:pointer;
+      font-weight:700; box-shadow:0 2px 8px rgba(10,60,120,.08);
+      transition:transform .12s, box-shadow .12s, background .15s;
+    }
+    .chip:hover{ transform:translateY(-1px); box-shadow:0 4px 12px rgba(10,60,120,.14); }
+    .chip.active{ background:#0b7fff; color:#fff; box-shadow:0 8px 18px rgba(11,127,255,.28), inset 0 -2px 0 rgba(0,0,0,.07); }
+
+    /* Tarjetas por área */
+    .tarjetas-container{
+      display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+      gap:16px; margin: 18px 0 10px;
+    }
+    .tarjeta{
+      background:#fff; border-radius:14px; box-shadow:var(--shadow); padding:16px 18px;
+      border-left:9px solid var(--azul); transition:box-shadow .18s, transform .18s;
+      opacity:0; transform:translateY(8px); animation:cardIn .45s ease forwards;
+    }
+    .tarjeta:hover{ box-shadow:var(--shadow-h); transform:translateY(-1px); }
+    .tarjeta h3{ margin:0 0 6px; font-size:1.12rem; color:var(--azul); }
+    .tarjeta p{ margin:6px 0; font-size:.96rem; color:#10263f; }
+
+    .tarjeta.verde{ border-left-color: var(--ok); }
+    .tarjeta.amarillo{ border-left-color: var(--warn); }
+    .tarjeta.rojo{ border-left-color: var(--err); }
+
+    /* Progreso */
+    .progress{ position:relative; height:10px; background:#eef3fb; border-radius:999px; overflow:hidden; margin:8px 0 4px; }
+    .progress .bar{ height:100%; width:0%; background:linear-gradient(90deg, #22c55e, #0ea5e9); transition:width .6s cubic-bezier(.22,.9,.3,1); }
+    .progress .pct{ position:absolute; right:8px; top:-22px; font-size:12px; font-weight:800; color:#0b3a6a; }
+
+    /* Tabla */
+    table{ width:100%; border-collapse:collapse; background:#fff; margin: 18px 0 0; box-shadow:0 0 12px rgba(0,0,0,.07); font-size:14px; border-radius:12px; overflow:hidden; }
+    thead th{
+      position:sticky; top:0; background:#f2f6fb; color:#003366; font-weight:700; letter-spacing:.2px;
+      border-bottom:2px solid #a7b7c9; padding:10px 8px; text-align:center; z-index:1;
+    }
+    tbody td{ border:1px solid #e3e7ef; padding:9px 7px; text-align:center; background:#fff; }
+    tbody tr:nth-child(even) td{ background:#f8fbff; }
+    th.sortable{ cursor:pointer; user-select:none; }
+    th.sortable .arrow{ opacity:.35; margin-left:6px; font-size:.8em; }
+    th.sortable.active{ color:#0a63c6; }
+    th.sortable.active .arrow{ opacity:1; }
+
+    /* Estados */
+    .empty, .loading{
+      text-align:center; color:#345; padding:20px; font-weight:600;
+    }
+    .spinner{
+      width:20px; height:20px; border-radius:50%; border:3px solid #cfe2ff; border-top-color:#0b7fff;
+      animation:spin .8s linear infinite; display:inline-block; vertical-align:middle; margin-right:8px;
+    }
+
+    footer{
+      width:100vw; background:#00529b; color:#fff; text-align:center; padding:12px 0 11px;
+      position:fixed; left:0; bottom:0; font-size:1.02rem; letter-spacing:.6px; z-index:50;
+    }
+
+    @keyframes cardIn{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:translateY(0);} }
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+
+    @media (max-width: 900px){
+      .input{ width: 220px; }
+      h1{ font-size:1.4rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <header>
+      <img src="https://www.isovolta.com/logo_isovolta.png" alt="Isovolta Logo">
+      <h1>RQ-1202-FOP Matriz de Capacitación</h1>
+      <div class="summary-top" id="totalEmpleadosGlobal"></div>
+    </header>
+
+    <div class="toolbar" role="region" aria-label="Controles de filtrado">
+      <div class="controls">
+        <div class="controls-left">
+          <input class="input" type="text" id="filtro" placeholder="Buscar por número, nombre o área" aria-label="Buscar" />
+          <button class="btn" id="btnActualizar">🔄 Actualizar</button>
+        </div>
+        <div class="controls-right">
+          <div id="globalPct" style="font-weight:800;color:#0b3a6a;">% Capacitación Global: 0%</div>
+        </div>
+      </div>
+      <div class="chips" id="chipsAreas" role="tablist" aria-label="Filtro por área"></div>
+    </div>
+
+    <div class="tarjetas-container" id="tarjetasContainer"></div>
+
+    <div id="tablaWrap">
+      <table id="resumenTabla" aria-live="polite">
+        <thead>
+          <tr id="headerRow"></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="estadoTabla" class="empty" style="display:none;">No hay registros que coincidan con el filtro.</div>
+      <div id="estadoCargando" class="loading" style="display:none;"><span class="spinner"></span>Cargando datos…</div>
+    </div>
+  </div>
+
+  <footer>Herramienta diseñada por el departamento de Producción &amp; Mejora Continua</footer>
+
+<script>
+  /* =========================
+     IndexedDB Helper
+  ========================== */
+  const DB_NAME = 'ILUO_DB';
+  const DB_VERSION = 1;
+  const STORE_NAME = 'respaldo';
+
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const r = indexedDB.open(DB_NAME, DB_VERSION);
+      r.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME, { keyPath: 'clave' });
+      };
+      r.onsuccess = () => resolve(r.result);
+      r.onerror  = (e) => reject(e.target.error);
+    });
+  }
+  async function guardarEnIndexedDB(clave, valor) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).put({ clave, valor });
+      tx.oncomplete = () => resolve();
+      tx.onerror = (e) => reject(e.target.error);
+    });
+  }
+  async function leerDeIndexedDB(clave) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const req = tx.objectStore(STORE_NAME).get(clave);
+      req.onsuccess = () => resolve(req.result ? req.result.valor : null);
+      req.onerror  = (e) => reject(e.target.error);
+    });
+  }
+  async function migrarLocalStorageAIndexedDB() {
+    const claves = ["matrizILUO", "documentosILUO"];
+    for (let clave of claves) {
+      const val = localStorage.getItem(clave);
+      if (val && !(await leerDeIndexedDB(clave))) {
+        await guardarEnIndexedDB(clave, JSON.parse(val));
+      }
+    }
+  }
+
+  /* =========================
+     Datos & Utilidades
+  ========================== */
+  let operadores = [];
+  let documentos = [];
+  let categorias = {};
+  let areaSeleccionada = "Todas";
+  let sortState = { key:null, dir:1 }; // 1 asc, -1 desc
+
+  const $ = (s)=>document.querySelector(s);
+  const $$ = (s)=>document.querySelectorAll(s);
+  const norm = s => (s||"").toString().trim().toLowerCase();
+
+  function esVerdadero(v) {
+    if (v === true) return true;
+    if (v === false) return false;
+    if (v == null) return null;
+    const s = String(v).trim().toLowerCase();
+    if (s === '') return null;
+    return ['1','true','sí','si','activo','activa','active','ok','yes'].includes(s);
+  }
+  function docEstaActivo(d) {
+    const v = esVerdadero(d?.activo ?? d?.estado ?? d?.estatus ?? d?.status);
+    return v === null ? true : v === true;
+  }
+
+  // Catálogo de documentos ACTIVO y ÚNICO por código para un área
+  function catalogoAreaUnico(area) {
+    const res = new Map();
+    if (!area) return [];
+    const areaLc = area.toLowerCase();
+    (documentos || []).forEach(d => {
+      const a = (d.area || '').toString().toLowerCase();
+      if (!a || a !== areaLc) return;
+      if (!docEstaActivo(d)) return;
+      const codigo = String(d.codigo ?? d.cod ?? d.id ?? '').trim();
+      if (!codigo) return;
+      if (!res.has(codigo)) res.set(codigo, d);
+    });
+    return Array.from(res.values());
+  }
+
+  function obtenerCategoriasDinamicas() {
+    let defaultPonderaciones = { "Normatividad":5, "Valores":5, "Seguridad":15, "Lean":15, "Calidad":30, "Eficiencia":30, "Sin Clasificar":0 };
+    let cats = {};
+    (documentos || []).forEach(d => {
+      if (d.tipoCategoria) {
+        cats[d.tipoCategoria] = typeof d.ponderacion === "number" ? d.ponderacion : (defaultPonderaciones[d.tipoCategoria] || 0);
+      }
+    });
+    Object.keys(defaultPonderaciones).forEach(c => { if (!(c in cats)) cats[c] = defaultPonderaciones[c]; });
+    (documentos || []).forEach(d => { if (d.tipoCategoria && !(d.tipoCategoria in cats)) cats[d.tipoCategoria] = 0; });
+    return cats;
+  }
+
+  function calcularCategoria(total) {
+    total = parseFloat(total);
+    if (total >= 95) return "A - Maestro";
+    if (total >= 90) return "B - Experto";
+    if (total >= 80) return "C - Competente";
+    if (total >= 70) return "D - Semicompetente";
+    if (total >= 50) return "E - Entrenamiento";
+    return "- Sin Clasificar";
+  }
+
+  // Resumen por operador (promedios + %Cap binario contra docs activos del área)
+  function calcularResumen(op, categorias) {
+    const calificaciones = {};
+    Object.keys(categorias).forEach(cat => calificaciones[cat] = []);
+    (op.documentacion || []).forEach(doc => {
+      const ref = documentos.find(d => (d.codigo ?? d.cod ?? d.id) === doc.codigo);
+      const tipo = ref?.tipoCategoria || "Sin Clasificar";
+      if (calificaciones.hasOwnProperty(tipo)) {
+        const val = parseFloat(doc.calificacion);
+        if (!isNaN(val)) calificaciones[tipo].push(val);
+      }
+    });
+
+    const promedios = {};
+    const puntosPorCategoria = {};
+    let puntosTotal = 0;
+    Object.keys(categorias).forEach(cat => {
+      const vals = calificaciones[cat] || [];
+      const ponderacion = categorias[cat];
+      const prom = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+      promedios[cat] = prom.toFixed(1);
+      let puntos = (prom * (ponderacion / 100));
+      if (vals.length > 0 && ponderacion > 0) puntosTotal += puntos;
+      puntosPorCategoria[cat] = puntos.toFixed(1);
+    });
+
+    const docsAreaUnicos = catalogoAreaUnico(op.area);
+    const totalDocs = docsAreaUnicos.length;
+    const setCodigosArea = new Set(docsAreaUnicos.map(d => String(d.codigo ?? d.cod ?? d.id ?? '').trim()));
+    const okPorCodigo = new Set();
+
+    (op.documentacion || []).forEach(d => {
+      const codigo = String(d.codigo ?? d.cod ?? d.id ?? '').trim();
+      if (!codigo || !setCodigosArea.has(codigo)) return;
+      const cal = d.calificacion ?? d.score ?? d.nota;
+      if (cal !== null && cal !== undefined && String(cal).trim() !== '') okPorCodigo.add(codigo);
+    });
+
+    const porcentajeCap = totalDocs ? ((okPorCodigo.size / totalDocs) * 100).toFixed(1) : '0.0';
+
+    return {
+      numero: op.numero, nombre: op.nombre, area: op.area,
+      ...promedios, ...puntosPorCategoria,
+      resultadoTotal: (puntosTotal).toFixed(1),
+      categoriaFinal: calcularCategoria(puntosTotal),
+      porcentajeCap, totalDocs
+    };
+  }
+
+  /* =========================
+     Render UI
+  ========================== */
+  function renderHeaderRow() {
+    const headerRow = $("#headerRow");
+    const cols = [
+      { key:"numero", label:"Número", sortable:false },
+      { key:"nombre", label:"Nombre", sortable:false },
+      { key:"area",   label:"Área",   sortable:false },
+      ...Object.keys(categorias).map(cat => ({ key:cat, label:cat, sortable:true })),
+      { key:"resultadoTotal", label:"Total de Puntos", sortable:true },
+      { key:"categoriaFinal", label:"Categoría", sortable:true },
+      { key:"porcentajeCap",  label:"% Cap.", sortable:true }
+    ];
+    headerRow.innerHTML = cols.map(c => {
+      if (!c.sortable) return `<th>${c.label}</th>`;
+      const active = sortState.key === c.key ? "active" : "";
+      const arrow = sortState.key === c.key ? (sortState.dir === 1 ? "▲" : "▼") : "↕";
+      return `<th class="sortable ${active}" data-key="${c.key}">${c.label} <span class="arrow">${arrow}</span></th>`;
+    }).join("");
+
+    // Listeners de sort
+    $$("#headerRow th.sortable").forEach(th=>{
+      th.onclick = () => {
+        const key = th.dataset.key;
+        if (sortState.key === key) sortState.dir *= -1; else { sortState.key = key; sortState.dir = 1; }
+        aplicarFiltro(); // re-render con orden
+      };
+    });
+  }
+
+  function ordenar(data) {
+    const {key, dir} = sortState;
+    if (!key) return data;
+    const numeric = (v)=> (v==null||v==="") ? -Infinity : parseFloat(v);
+    const str = (v)=> (v==null) ? "" : String(v);
+    return [...data].sort((a,b)=>{
+      // calcularResumen para tomar campos derivados si aplica
+      const ra = calcularResumen(a, categorias);
+      const rb = calcularResumen(b, categorias);
+      const va = ra[key] ?? a[key];
+      const vb = rb[key] ?? b[key];
+
+      const na = Number.isFinite(parseFloat(va));
+      const nb = Number.isFinite(parseFloat(vb));
+      if (na && nb) return (numeric(va) - numeric(vb)) * dir;
+      return str(va).localeCompare(str(vb), 'es', {numeric:true}) * dir;
+    });
+  }
+
+  function renderTabla(data) {
+    const tbody = $("#resumenTabla tbody");
+    const estadoTabla = $("#estadoTabla");
+    const estadoCargando = $("#estadoCargando");
+
+    estadoTabla.style.display = "none";
+    estadoCargando.style.display = "none";
+    tbody.innerHTML = "";
+
+    if (!data.length) {
+      estadoTabla.style.display = "block";
+      $("#globalPct").textContent = `% Capacitación Global: 0%`;
+      return;
+    }
+
+    const ordenados = ordenar(data);
+    let total = 0, sumaCap = 0;
+
+    ordenados.forEach(op => {
+      const r = calcularResumen(op, categorias);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.numero ?? ""}</td>
+        <td style="text-align:left;">${r.nombre ?? ""}</td>
+        <td>${r.area ?? ""}</td>
+        ${Object.keys(categorias).map(cat => `<td>${r[cat] ?? "0.0"}</td>`).join("")}
+        <td>${r.resultadoTotal}%</td>
+        <td>${r.categoriaFinal}</td>
+        <td>${r.porcentajeCap}%</td>
+      `;
+      tbody.appendChild(tr);
+      total++;
+      sumaCap += parseFloat(r.porcentajeCap);
+    });
+
+    const promGlobal = total ? (sumaCap/total).toFixed(1) : 0;
+    $("#globalPct").textContent = `% Capacitación Global: ${promGlobal}%`;
+
+    renderTarjetas(ordenados);
+  }
+
+  function renderTarjetas(data) {
+    const cont = $("#tarjetasContainer");
+    cont.innerHTML = "";
+
+    // Agrupar por área (y respetar filtro de chip si no es "Todas")
+    const mapa = {};
+    data.forEach(op=>{
+      if (areaSeleccionada !== "Todas" && op.area !== areaSeleccionada) return;
+      (mapa[op.area] ||= []).push(op);
+    });
+
+    let i=0;
+    Object.keys(mapa).sort().forEach(area=>{
+      const ops = mapa[area];
+      const docsUnicos = catalogoAreaUnico(area);
+      const totalDocsArea = docsUnicos.length;
+
+      let sumCap = 0;
+      ops.forEach(op => {
+        const r = calcularResumen(op, categorias);
+        sumCap += parseFloat(r.porcentajeCap);
+      });
+      const prom = ops.length ? (sumCap/ops.length) : 0;
+
+      let clase = "verde";
+      if (prom < 70) clase = "rojo";
+      else if (prom < 90) clase = "amarillo";
+
+      const card = document.createElement("div");
+      card.className = `tarjeta ${clase}`;
+      card.style.animationDelay = (i*0.03) + "s"; i++;
+
+      card.innerHTML = `
+        <h3>${area || "—"}</h3>
+        <p>👥 Personas: ${ops.length}</p>
+        <p>📄 Documentos (activos únicos): ${totalDocsArea}</p>
+        <div class="progress" aria-label="Promedio de capacitación del área">
+          <div class="bar" style="width:${prom.toFixed(0)}%"></div>
+          <div class="pct">${prom.toFixed(1)}%</div>
+        </div>
+      `;
+      cont.appendChild(card);
+    });
+  }
+
+  function renderChipsAreas() {
+    const div = $("#chipsAreas");
+    div.innerHTML = "";
+    const areas = [...new Set((documentos||[]).map(d=>d.area).filter(Boolean))].sort();
+    const mk = (label)=>{
+      const b = document.createElement("button");
+      b.className = "chip" + (areaSeleccionada===label ? " active":"");
+      b.role = "tab";
+      b.ariaSelected = (areaSeleccionada===label) ? "true" : "false";
+      b.textContent = label;
+      b.onclick = () => { areaSeleccionada = label; // actualizar estado activo
+        $$("#chipsAreas .chip").forEach(ch=>ch.classList.remove("active"));
+        b.classList.add("active");
+        aplicarFiltro(); // re-render
+      };
+      return b;
+    };
+    div.appendChild(mk("Todas"));
+    areas.forEach(a => div.appendChild(mk(a)));
+  }
+
+  /* =========================
+     Filtro & Carga
+  ========================== */
+  let debounceTimer;
+  function aplicarFiltro() {
+    const texto = norm($("#filtro").value);
+    const base = operadores.filter(op => {
+      const pasaTexto =
+        norm(op.nombre).includes(texto) ||
+        String(op.numero ?? "").includes(texto) ||
+        norm(op.area).includes(texto);
+      const pasaArea = (areaSeleccionada === "Todas") || (op.area === areaSeleccionada);
+      return pasaTexto && pasaArea;
+    });
+
+    renderTabla(base);
+  }
+
+  async function actualizarDatos() {
+    $("#estadoCargando").style.display = "block";
+    await migrarLocalStorageAIndexedDB();
+    operadores = await leerDeIndexedDB("matrizILUO") || [];
+    documentos = await leerDeIndexedDB("documentosILUO") || [];
+    categorias = obtenerCategoriasDinamicas();
+    $("#totalEmpleadosGlobal").textContent = `👥 Total de empleados: ${operadores.length}`;
+    renderHeaderRow();
+    renderChipsAreas();
+    aplicarFiltro();
+    $("#estadoCargando").style.display = "none";
+  }
+
+  function initEvents(){
+    $("#btnActualizar").onclick = actualizarDatos;
+    $("#filtro").addEventListener("input", ()=>{
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(aplicarFiltro, 180);
+    });
+  }
+
+  async function inicializar() {
+    initEvents();
+    await actualizarDatos();
+  }
+  inicializar();
+</script>
+</body>
+</html>

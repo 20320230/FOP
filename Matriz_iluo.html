@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta charset="utf-8"/>
+  <title>RQ-0705-FOP Ficha de Talento</title>
+  <link rel="icon" type="image/png" href="Isovolta.ico">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f7fb;
+      margin: 0; padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px 40px 10px 40px;
+      background: #fff;
+      box-shadow: 0 4px 18px -4px #00499024;
+      border-bottom: 4px solid #004990;
+    }
+    header h1 {
+      color: #004990;
+      margin: 0;
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: .5px;
+    }
+    header img {
+      height: 60px;
+    }
+    .main-container {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 35px;
+      align-items: flex-start;
+      padding: 30px 4vw 30px 4vw;
+      box-sizing: border-box;
+      justify-content: center;
+    }
+    .panel-busqueda {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px 0 #00336622;
+      padding: 20px 24px;
+      margin-bottom: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      min-width: 320px;
+    }
+    .panel-busqueda select,
+    .panel-busqueda input,
+    .panel-busqueda button {
+      margin: 0 5px 0 0;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+      padding: 8px 10px;
+      background: #f7faff;
+      min-width: 130px;
+      transition: box-shadow 0.2s;
+    }
+    .panel-busqueda button.btn {
+      background: #004990;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 8px #00499024;
+      transition: background .25s;
+    }
+    .panel-busqueda button.btn:hover {
+      background: #006ad1;
+    }
+    .panel-busqueda .alerta {
+      background: #ffffcc;
+      border: 1px solid #cccc00;
+      padding: 9px 12px;
+      margin: 10px 0 0 0;
+      font-size: 13px;
+      border-radius: 6px;
+      width: 100%;
+    }
+    .datos-operador {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px #00499013;
+      padding: 24px 18px 10px 18px;
+      margin-bottom: 20px;
+    }
+    .datos-operador h2 {
+      font-size: 1.3rem;
+      color: #003366;
+      margin: 0 0 12px 0;
+      font-weight: 600;
+    }
+    .tabla-matriz {
+      background: #fff;
+      border-radius: 13px;
+      box-shadow: 0 2px 10px #00336612;
+      overflow-x: auto;
+      margin-bottom: 22px;
+    }
+    table {
+      font-size: 13px;
+      border-collapse: collapse;
+      width: 100%;
+      background: white;
+    }
+
+    th:nth-child(7), td:nth-child(7) {
+      min-width: 40px !important;
+      max-width: 40px !important;
+      width: 40px !important;
+      text-align: center !important;
+      padding: 0 !important;
+    }
+
+    td input[type="text"][readonly] {
+      background: transparent !important;
+      border: none !important;
+      outline: none;
+      box-shadow: none;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: inherit;
+      width: 35px !important;
+      margin: 0 auto !important;
+      display: block;
+      text-align: center;
+      cursor: default;
+    }
+    td input[type="text"][readonly] {
+      font-size: 1.25em;
+      font-weight: bold;
+      text-align: center;
+      background: transparent !important;
+      border: none !important;
+      outline: none;
+      box-shadow: none;
+      width: 36px !important;
+      margin: 0 auto !important;
+      cursor: default;
+      padding: 0;
+    }
+
+
+    th, td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #dee2e6;
+      vertical-align: middle;
+      text-align: center;
+    }
+    th {
+      background-color: #004990;
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    tr:nth-child(even) { background: #f7faff; }
+    td.codigo, td.documento {
+      min-width: 140px; max-width: 260px;
+      text-align: left;
+    }
+    .panel-right {
+      min-width: 340px;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .foto-tarjeta {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px #00499015;
+      padding: 16px 8px 10px 8px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    #fotoOperador {
+      max-width: 180px;
+      margin: 0 auto 8px auto;
+      border-radius: 10px;
+      box-shadow: 0 1px 8px #00499028;
+      border: 2px solid #e3e3e3;
+      display: none;
+    }
+    #nombreFotoActual { font-size: 13px; color: #666; margin-bottom: 8px; }
+    .resumen-card {
+      background: #f5f8fc;
+      border-radius: 10px;
+      box-shadow: 0 1px 8px #00499014;
+      padding: 12px 12px 6px 12px;
+      font-size: 14px;
+    }
+    .resumen-card table { margin-top: 5px; }
+    .resumen-card th, .resumen-card td { font-size: 13px; padding: 5px 9px;}
+    .resumen-card th { background: #2978b7; }
+    .resumen-card strong { color: #005088; }
+    .backup-card {
+      background: #fff;
+      border: 1.5px dashed #9cb5ce;
+      border-radius: 8px;
+      padding: 10px 13px;
+      box-shadow: 0 1px 5px #0049900d;
+      font-size: 14px;
+    }
+    #leyendaILUO {
+      background: #f4f7fa;
+      border: 1px solid #bbc9e5;
+      border-radius: 8px;
+      padding: 11px 13px;
+      font-size: 14px;
+      color: #004990;
+      margin-top: 8px;
+      box-shadow: 0 1px 8px #0049900a;
+    }
+    .nivel-NA { background: #e2e2e2; color: #c462c4; font-weight: bold; }
+    .nivel-I  { background-color: #ffe5e5; color: red; font-weight: bold; }
+    .nivel-L  { background-color: #e5f1ff; color: #2bace2; font-weight: bold; }
+    .nivel-U  { background-color: #e5f9e5; color: #00a651; font-weight: bold; }
+    .nivel-O  { background-color: #fffbe5; color: black; font-weight: bold; }
+    @media (max-width: 950px) {
+      .main-container { flex-direction: column; gap: 8px; }
+      .panel-right { max-width: 100%; min-width: 200px; flex-direction: column; }
+      .tabla-matriz { width: 100vw; max-width: 100vw; }
+    }
+    footer {
+      background: #004990;
+      color: #fff;
+      text-align: center;
+      padding: 11px 0 9px 0;
+      font-size: 15px;
+      letter-spacing: 0.1em;
+      margin-top: 40px;
+      border-radius: 0 0 14px 14px;
+      box-shadow: 0 1px 7px #00336622;
+    }
+
+    .nivel-NA { color: #c462c4 !important; }
+    .nivel-I  { color: red !important; }
+    .nivel-L  { color: #2bace2 !important; }
+    .nivel-U  { color: #00a651 !important; }
+    .nivel-O  { color: black !important; }
+
+    .mini { font-size:12px; color:#334155 }
+  </style>
+</head>
+<body>
+<header>
+  <h1>RQ-0705-FOP Ficha de talento</h1>
+  <img alt="Isovolta Logo" src="https://www.isovolta.com/logo_isovolta.png"/>
+</header>
+<div class="main-container">
+  <div style="flex: 1;">
+    <div class="panel-busqueda">
+      <select id="areaFiltro" onchange="filtrarOperadoresPorArea()">
+        <option value="">-- Filtrar por área --</option>
+      </select>
+      <select id="operadoresGuardados" onchange="cargarOperador()">
+        <option value="">-- Cargar operador --</option>
+      </select>
+      <button class="btn" onclick="guardarDatos()">Guardar</button>
+      <div class="alerta">
+        ⚠️ <strong>Importante:</strong> Esta herramienta guarda la información solo en el navegador actual.
+      </div>
+    </div>
+    <div class="datos-operador" id="infoOperador"></div>
+    <div class="tabla-matriz" id="matriz"></div>
+  </div>
+  <div class="panel-right">
+    <div class="foto-tarjeta">
+      <img id="fotoOperador" src="" alt="Foto del operador"/>
+      <div id="nombreFotoActual">Sin foto</div>
+      <input type="file" id="inputFoto" accept="image/*" onchange="cargarFotoBase64(event)">
+    </div>
+    <div class="resumen-card">
+      <strong>Resumen por Categoría:</strong>
+      <div id="promediosPorCategoria" style="margin-top: 10px;"></div>
+      <div id="resultadoFinal" style="margin-top: 15px; font-size: 16px; font-weight: bold;"></div>
+    </div>
+    <div class="backup-card">
+      <strong>☁️ Actualizar datos remotos:</strong><br/>
+      <button class="btn" onclick="actualizarRemoto()">Actualizar</button>
+      <div class="mini">Origen: enlace de Dropbox normalizado a descarga directa.</div>
+      <hr style="margin:12px 0; border:none; border-top:1px solid #e5e7eb;">
+      <strong>💾 Respaldo local:</strong><br/>
+      <button class="btn" onclick="exportarDatos()">Exportar respaldo</button>
+      <input accept=".json" onchange="importarDatos(event)" style="margin-left: 10px;" type="file"/>
+    </div>
+    <div id="leyendaILUO">
+      <strong>Referencias ILUO:</strong><br/><br/>
+      Nivel: <span style="color: #c462c4; font-weight: bold;">N/A</span> (Entrenamiento): Categoria E = Personal sin conocimiento, no puede operar autónomamente.<br/>
+      <br/>
+      Nivel:<span style="color: red; font-weight: bold;">I</span> (Semicompetente): Categoria D = Aplica tareas con supervisión. Calcula, resuelve y aplica.<br/>
+      <br/>
+      Nivel:<span style="color: #2bace2; font-weight: bold;">L</span> (Competente): Categoria C = Opera tareas sin supervisión. Clasifica, interpreta, sintetiza.<br/>
+      <br/>
+      Nivel:<span style="color: #00a651; font-weight: bold;">U</span> (Experto): Categoria B = Realiza tareas y las supervisa. Propone, mejora, diseña.<br/>
+      <br/>
+      Nivel:<span style="color: black; font-weight: bold;">O</span> (Maestro): Categoria A = Realiza, supervisa y enseña. Evalúa, optimiza y forma a otros.
+    </div>
+ </div>
+</div>
+
+<script>
+// ==========================
+// IndexedDB utilidades
+// ==========================
+const DB_NAME = 'ILUO_DB';
+const DB_VERSION = 1;
+const STORE_NAME = 'respaldo';
+const RUTAS_EXAMENES_KEY = 'rutasExamenesV2';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'clave' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
+
+async function guardarEnIndexedDB(clave, valor) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.put({ clave, valor });
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function leerDeIndexedDB(clave) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.get(clave);
+    req.onsuccess = () => resolve(req.result ? req.result.valor : null);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function migrarLocalStorageAIndexedDB() {
+  const claves = ["matrizILUO", "documentosILUO", "indiceDocumentosExtra", "documentosAdministrador", "indiceIATF","examenesILUO"];
+  for (let clave of claves) {
+    const val = localStorage.getItem(clave);
+    if (val && !(await leerDeIndexedDB(clave))) {
+      await guardarEnIndexedDB(clave, JSON.parse(val));
+    }
+  }
+}
+
+// ----- Globales -----
+let operadorActual = null;
+let operadores = [];
+let documentos = [];
+let indiceDocumentosExtra = [];
+let documentosAdministrador = [];
+let indiceIATF = [];
+let examenesILUO = [];
+let rutasExamenes = {}; // { [codigo]: "ruta/al/examen" }
+
+// ==========================
+// Remoto (Dropbox): actualizar con un solo botón
+// ==========================
+const REMOTE_JSON_URL = 'https://www.dropbox.com/scl/fi/100bnpwf0m40lf881mreg/respaldo.json?rlkey=rsxvt8rq6lzg5yr4j08q4vyc9&st=opfnnhhb&dl=0';
+
+function normalizarDropbox(url){
+  try{
+    // fuerza descarga directa (mejor CORS):
+    // 1) dl=1 o raw=1
+    let u = new URL(url);
+    if(u.hostname === 'www.dropbox.com') u.hostname = 'dl.dropboxusercontent.com';
+    if(u.searchParams.has('dl')) u.searchParams.set('dl','1');
+    else if(!u.searchParams.has('raw')) u.searchParams.set('raw','1');
+    return u.toString();
+  }catch(e){
+    return url.replace('www.dropbox.com','dl.dropboxusercontent.com').replace('dl=0','dl=1');
+  }
+}
+
+async function actualizarRemoto() {
+  const url = normalizarDropbox(REMOTE_JSON_URL);
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    // Intentar JSON; si no, parsear texto
+    let data;
+    try {
+      data = await res.clone().json();            // 1er intento (puede fallar si es text/plain)
+    } catch (err1) {
+      const txt = await res.text();               // 2do intento
+      data = JSON.parse(txt);
+    }
+
+    if (!data || typeof data !== 'object') {
+      throw new Error('El archivo remoto no contiene JSON válido');
+    }
+
+    if (data.matrizILUO)              await guardarEnIndexedDB('matrizILUO', data.matrizILUO);
+    if (data.documentosILUO)          await guardarEnIndexedDB('documentosILUO', data.documentosILUO);
+    if (data.indiceDocumentosExtra)   await guardarEnIndexedDB('indiceDocumentosExtra', data.indiceDocumentosExtra);
+    if (data.documentosAdministrador) await guardarEnIndexedDB('documentosAdministrador', data.documentosAdministrador);
+    if (data.indiceIATF)              await guardarEnIndexedDB('indiceIATF', data.indiceIATF);
+    if (data.examenesILUO)            await guardarEnIndexedDB('examenesILUO', data.examenesILUO);
+    if (data.rutasExamenes)           await guardarEnIndexedDB(RUTAS_EXAMENES_KEY, data.rutasExamenes);
+
+    await cargarListaOperadores();
+    if (operadorActual) renderizarMatriz();
+    alert('Datos actualizados desde Dropbox.');
+  } catch (e) {
+    alert('Error al actualizar remoto\nDetalle: ' + (e && e.message ? e.message : e));
+  }
+}
+
+
+// ----- Inicialización -----
+async function inicializar() {
+  await migrarLocalStorageAIndexedDB();
+  operadores = await leerDeIndexedDB('matrizILUO') || [];
+  documentos = await leerDeIndexedDB('documentosILUO') || [];
+  indiceDocumentosExtra = await leerDeIndexedDB('indiceDocumentosExtra') || [];
+  documentosAdministrador = await leerDeIndexedDB('documentosAdministrador') || [];
+  indiceIATF = await leerDeIndexedDB('indiceIATF') || [];
+  examenesILUO = await leerDeIndexedDB('examenesILUO') || [];
+  rutasExamenes = await leerDeIndexedDB(RUTAS_EXAMENES_KEY) || {};
+  await cargarListaOperadores();
+  
+}
+
+document.addEventListener('DOMContentLoaded', inicializar);
+
+// ----- Funciones principales -----
+function calcularNivel(p) {
+  if (p >= 95) return 'O';
+  if (p >= 90) return 'U';
+  if (p >= 80) return 'L';
+  if (p >= 70) return 'I';
+  if (p >= 2) return 'NA';
+  return 'NA';
+}
+
+function renderizarMatriz() {
+  document.getElementById('infoOperador').innerHTML =
+    `<h2>Empleado: ${operadorActual.numero} | ${operadorActual.nombre} | Puesto: ${operadorActual.puesto} | Área: ${operadorActual.area}</h2>`;
+
+  // --- FILTRO POR PUESTO ---
+  const docs = documentos.filter(d =>
+    d.puesto && operadorActual.puesto &&
+    d.puesto.toLowerCase().trim() === operadorActual.puesto.toLowerCase().trim()
+  );
+
+  let html = `
+  <div class="form-group" style="margin-top: 10px;">
+    <input type="text" id="filtroCategoria" placeholder="Filtrar por categoría..." oninput="aplicarFiltrosMatriz()"/>
+    <input type="text" id="filtroCodigo" placeholder="Filtrar por código..." oninput="aplicarFiltrosMatriz()"/>
+    <input type="text" id="filtroDocumento" placeholder="Filtrar por documento..." oninput="aplicarFiltrosMatriz()"/>
+  </div>
+  `;
+  html += '<table><thead><tr><th>Código</th><th>Documento</th><th>Tipo de Categoría</th><th>Revisión</th><th>Capacitador</th><th>Calificación</th><th>Nivel ILUO</th></tr></thead><tbody>';
+
+  docs.forEach((doc, i) => {
+    const id = `doc_${i}`;
+    html += `<tr>
+      <td class="codigo">${doc.codigo || ''}</td>
+      <td class="documento">${doc.documento}</td>
+      <td>${doc.tipoCategoria || ''}</td>
+      <td>${doc.revision || ''}</td>
+      <td>${doc.capacitador || ''}</td>
+      <td><input type="number" id="cal_${id}" min="0" max="100" onchange="actualizarNivel('${id}'); calcularResumenCategorias()"></td>
+      <td><input type="text" id="nivel_${id}" readonly></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('matriz').innerHTML = html;
+}
+
+
+function actualizarNivel(id) {
+  const val = parseFloat(document.getElementById(`cal_${id}`).value);
+  const input = document.getElementById(`nivel_${id}`);
+  const nivel = calcularNivel(val);
+  input.value = nivel;
+  input.className = '';
+  input.classList.add('nivel-' + nivel);
+}
+
+async function guardarDatos() {
+  if (!operadorActual) return alert('No hay operador activo');
+
+  // Reconstruir documentacion del operador desde la tabla visible
+  operadorActual.documentacion = [];
+
+  const docs = documentos.filter(d =>
+    d.puesto && operadorActual.puesto &&
+    d.puesto.toLowerCase() === operadorActual.puesto.toLowerCase()
+  );
+
+  docs.forEach((doc, i) => {
+    const id = `doc_${i}`;
+    operadorActual.documentacion.push({
+      nombre: doc.documento,
+      codigo: doc.codigo,
+      revision: doc.revision,
+      capacitador: doc.capacitador,
+      calificacion: document.getElementById(`cal_${id}`).value,
+      nivel: document.getElementById(`nivel_${id}`).value,
+    });
+  });
+
+  // Guardar solo en IndexedDB (sin descargar nada)
+  const lista = await leerDeIndexedDB('matrizILUO') || [];
+  const idx = lista.findIndex(op => op.numero === operadorActual.numero);
+  if (idx >= 0) lista[idx] = operadorActual;
+  else lista.push(operadorActual);
+  await guardarEnIndexedDB('matrizILUO', lista);
+
+  // (Opcional) rutasExamenes
+  // await guardarEnIndexedDB(RUTAS_EXAMENES_KEY, rutasExamenes);
+
+  alert('Datos guardados en este navegador.');
+}
+
+
+async function cargarListaOperadores() {
+  operadores = await leerDeIndexedDB('matrizILUO') || [];
+  const areas = [...new Set(operadores.map(op => op.area))].sort();
+  const areaSelect = document.getElementById('areaFiltro');
+  areaSelect.innerHTML = '<option value="">-- Filtrar por área --</option>';
+  areas.forEach(area => {
+    const opt = document.createElement('option');
+    opt.value = area;
+    opt.textContent = area;
+    areaSelect.appendChild(opt);
+  });
+  actualizarListaOperadores(operadores);
+}
+
+function actualizarListaOperadores(lista) {
+  const select = document.getElementById('operadoresGuardados');
+  select.innerHTML = '<option value="">-- Cargar operador --</option>';
+  lista.forEach(op => {
+    const opt = document.createElement('option');
+    opt.value = op.numero;
+    opt.textContent = op.nombre;
+    select.appendChild(opt);
+  });
+}
+
+async function filtrarOperadoresPorArea() {
+  const area = document.getElementById('areaFiltro').value;
+  operadores = await leerDeIndexedDB('matrizILUO') || [];
+  const filtrados = area ? operadores.filter(op => op.area === area) : operadores;
+  actualizarListaOperadores(filtrados);
+}
+
+async function cargarFotoBase64(event) {
+  const file = event.target.files[0];
+  if (!file || !operadorActual) return;
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    operadorActual.foto = e.target.result;
+    // Guarda la foto en base64 en la BD
+    let personas = await leerDeIndexedDB('matrizILUO') || [];
+    const idx = personas.findIndex(p => p.numero === operadorActual.numero);
+    if (idx >= 0) personas[idx].foto = operadorActual.foto;
+    await guardarEnIndexedDB('matrizILUO', personas);
+    mostrarFotoBase64();
+  };
+  reader.readAsDataURL(file);
+}
+
+function mostrarFotoBase64() {
+  const img = document.getElementById('fotoOperador');
+  const lbl = document.getElementById('nombreFotoActual');
+  if (operadorActual && operadorActual.foto && operadorActual.foto.startsWith('data:image')) {
+    img.src = operadorActual.foto;
+    img.style.display = 'block';
+    lbl.textContent = 'Foto cargada en la base de datos';
+  } else {
+    img.src = '';
+    img.style.display = 'none';
+    lbl.textContent = 'Sin foto';
+  }
+}
+
+
+async function cargarOperador() {
+  const numero = document.getElementById('operadoresGuardados').value;
+  if (!numero) return;
+  operadores = await leerDeIndexedDB('matrizILUO') || [];
+  operadorActual = operadores.find(o => o.numero === numero);
+  if (!operadorActual) return alert('Operador no encontrado');
+  mostrarFotoBase64();
+  renderizarMatriz();
+  setTimeout(() => {
+    if (!operadorActual.documentacion) return;
+    operadorActual.documentacion.forEach((doc, i) => {
+      const id = `doc_${i}`;
+      const cal = document.getElementById(`cal_${id}`);
+      const nivel = document.getElementById(`nivel_${id}`);
+      const fecha = document.getElementById(`fecha_${id}`);
+
+      if (cal) cal.value = doc.calificacion || '';
+      if (fecha) fecha.value = doc.fecha || '';
+      
+      if (cal && nivel) actualizarNivel(id);
+    });
+    calcularResumenCategorias();
+  }, 100);
+}
+
+async function exportarDatos() {
+  const data = {
+    matrizILUO: await leerDeIndexedDB('matrizILUO') || [],
+    documentosILUO: await leerDeIndexedDB('documentosILUO') || [],
+    indiceDocumentosExtra: await leerDeIndexedDB('indiceDocumentosExtra') || [],
+    documentosAdministrador: await leerDeIndexedDB('documentosAdministrador') || [],
+    indiceIATF: await leerDeIndexedDB('indiceIATF') || [],
+    examenesILUO: await leerDeIndexedDB('examenesILUO') || [],
+    rutasExamenes: await leerDeIndexedDB(RUTAS_EXAMENES_KEY) || {}
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'respaldo_matriz_iluo_completo.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function importarDatos(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.matrizILUO) await guardarEnIndexedDB('matrizILUO', data.matrizILUO);
+      if (data.documentosILUO) await guardarEnIndexedDB('documentosILUO', data.documentosILUO);
+      if (data.indiceDocumentosExtra) await guardarEnIndexedDB('indiceDocumentosExtra', data.indiceDocumentosExtra);
+      if (data.documentosAdministrador) await guardarEnIndexedDB('documentosAdministrador', data.documentosAdministrador);
+      if (data.indiceIATF) await guardarEnIndexedDB('indiceIATF', data.indiceIATF);
+      if (data.examenesILUO) await guardarEnIndexedDB('examenesILUO', data.examenesILUO);
+      if (data.rutasExamenes) await guardarEnIndexedDB(RUTAS_EXAMENES_KEY, data.rutasExamenes);
+      alert('Datos importados correctamente. Recarga la página para ver los cambios.');
+    } catch (err) {
+      alert('Error al importar el archivo. Verifique que sea un respaldo válido.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function calcularResumenCategorias() {
+  const categorias = {
+    'Normatividad': { pts: 5, valores: [] },
+    'Valores': { pts: 5, valores: [] },
+    'Seguridad': { pts: 15, valores: [] },
+    'Lean': { pts: 15, valores: [] },
+    'Calidad': { pts: 30, valores: [] },
+    'Eficiencia': { pts: 30, valores: [] },
+    'Sin Clasificar': { pts: 0, valores: [] }
+  };
+
+  const docs = documentos.filter(d =>
+    d.puesto && operadorActual.puesto &&
+    d.puesto.toLowerCase() === operadorActual.puesto.toLowerCase()
+  );
+
+  if (!operadorActual.documentacion) return;
+
+  operadorActual.documentacion.forEach((doc) => {
+    const docRef = docs.find(d => d.codigo === doc.codigo);
+    const tipo = (docRef && docRef.tipoCategoria) ? docRef.tipoCategoria : 'Sin Clasificar';
+    const val = parseFloat(doc.calificacion);
+    if (!isNaN(val)) {
+      if (!categorias[tipo]) categorias[tipo] = { pts: 0, valores: [] };
+      categorias[tipo].valores.push(val);
+    }
+  });
+
+  let total = 0;
+  let resumenHTML = '<table><thead><tr><th>Categoría</th><th>Ponderación</th><th>Promedio</th><th>Puntos</th></tr></thead><tbody>';
+  Object.entries(categorias).forEach(([nombre, { pts, valores }]) => {
+    const promedio = valores.length ? valores.reduce((a, b) => a + b, 0) / valores.length : 0;
+    const puntos = promedio * pts / 100;
+    total += puntos;
+    resumenHTML += `<tr><td>${nombre}</td><td>${pts}%</td><td>${promedio.toFixed(1)}%</td><td>${puntos.toFixed(1)}%</td></tr>`;
+  });
+  resumenHTML += '</tbody></table>';
+
+  let nivelFinal = '';
+  let letra = '';
+  if (total >= 95) { nivelFinal = 'Maestro'; letra = 'A'; }
+  else if (total >= 90) { nivelFinal = 'Experto'; letra = 'B'; }
+  else if (total >= 80) { nivelFinal = 'Competente'; letra = 'C'; }
+  else if (total >= 70) { nivelFinal = 'Semicompetente'; letra = 'D'; }
+  else if (total >= 50) { nivelFinal = 'Entrenamiento'; letra = 'E'; }
+  else { nivelFinal = 'Sin Clasificar'; letra = '-'; }
+
+  if (!document.getElementById('promediosPorCategoria')) {
+    let resumen = document.createElement('div');
+    resumen.id = 'promediosPorCategoria';
+    document.body.appendChild(resumen);
+  }
+  if (!document.getElementById('resultadoFinal')) {
+    let resultado = document.createElement('div');
+    resultado.id = 'resultadoFinal';
+    document.body.appendChild(resultado);
+  }
+
+  document.getElementById('promediosPorCategoria').innerHTML = resumenHTML;
+  document.getElementById('resultadoFinal').innerHTML = `Resultado Total: <span style="color: #004990;">${total.toFixed(1)}%</span> → Nivel: <strong>${nivelFinal}</strong> (Categoría ${letra})`;
+}
+
+function aplicarFiltrosMatriz() {
+  const fc = document.getElementById('filtroCategoria');
+  const fg = document.getElementById('filtroCodigo');
+  const fd = document.getElementById('filtroDocumento');
+  const categoria = ((fc && fc.value) ? fc.value : '').toLowerCase();
+  const codigo = ((fg && fg.value) ? fg.value : '').toLowerCase();
+  const documento = ((fd && fd.value) ? fd.value : '').toLowerCase();
+  const filas = document.querySelectorAll('#matriz table tbody tr');
+  filas.forEach(fila => {
+    const celdaCategoria = (fila.cells[2] && fila.cells[2].textContent ? fila.cells[2].textContent : '').toLowerCase();
+    const celdaCodigo = (fila.cells[0] && fila.cells[0].textContent ? fila.cells[0].textContent : '').toLowerCase();
+    const celdaDocumento = (fila.cells[1] && fila.cells[1].textContent ? fila.cells[1].textContent : '').toLowerCase();
+    const mostrar =
+      celdaCategoria.includes(categoria) &&
+      celdaCodigo.includes(codigo) &&
+      celdaDocumento.includes(documento);
+    fila.style.display = mostrar ? '' : 'none';
+  });
+}
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "Isovolta",
+  "short_name": "Plataforma",
+"start_url": "FORMAR AL PERSONAL.html",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#004990",
+  "icons": [
+    {
+      "src": "Isovolta.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

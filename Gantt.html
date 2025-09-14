@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Programa de Capacitación — Nuevos Ingresos</title>
+  <link rel="icon" type="image/png" href="./Isovolta.ico" />
+  <style>
+    :root{
+      /* Paleta ISOVOLTA: amarillo / negro / gris */
+      --primary:#111111;
+      --primary-2:#2b2b2b;
+      --accent:#f4c600;
+      --accent-2:#ffd60a;
+      --bg:#f5f6f7;
+      --card:#ffffff;
+      --ink:#1a1a1a;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --ok:#16a34a;
+      --warn:#f59e0b;
+      --err:#d32f2f;
+      --info:#0ea5e9;
+      --shadow:0 10px 28px rgba(17,17,17,.12);
+      --r:14px; --r-sm:10px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);margin:0;color:var(--ink)}
+
+    header{
+      position:sticky; top:0; z-index:8; display:flex; align-items:center; gap:14px;
+      background:linear-gradient(180deg,#ffffff 0%,#fafafa 100%);
+      padding:16px 16px 12px; border-bottom:4px solid var(--accent);
+      box-shadow:0 6px 20px rgba(17,17,17,.06);
+    }
+    header img{height:42px}
+    header .t{display:flex; flex-direction:column}
+    header .t .title{font-weight:900; letter-spacing:.4px; font-size:1.28rem; color:var(--primary)}
+    header .t .desc{color:#4b5563; font-weight:600}
+
+    .wrap{max-width:1200px; margin:14px auto 110px; padding:0 12px}
+
+    .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; background:var(--card); border-radius:var(--r);
+      box-shadow:var(--shadow); padding:12px; border:1px solid var(--line)}
+    .toolbar select,.toolbar input,.toolbar button{border:1.5px solid #d1d5db; background:#fdfdfd; color:var(--ink);
+      padding:9px 12px; border-radius:10px; font-size:14px; outline:none; transition:border .15s, transform .12s}
+    .toolbar select:focus,.toolbar input:focus{border-color:var(--accent)}
+    .btn{background:linear-gradient(90deg,var(--accent) 0%, var(--accent-2) 100%); color:#111; border:none; cursor:pointer; font-weight:800;
+      box-shadow:0 8px 18px rgba(244,198,0,.28)}
+    .btn:hover{transform:translateY(-1px)}
+    .btn.secondary{background:#fff;color:var(--primary);border:1.6px solid var(--primary); box-shadow:none}
+    .btn.warn{background:linear-gradient(90deg,#d97706,#f59e0b); color:#111}
+
+    .grid{display:grid; grid-template-columns: 1.2fr .9fr .9fr .9fr .9fr .7fr; gap:10px; align-items:stretch}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden;
+      transition:transform .15s ease, box-shadow .2s ease}
+    .card:hover{transform:translateY(-2px); box-shadow:0 14px 30px rgba(0,32,91,.14)}
+
+    .section{margin-top:14px}
+    .section h3{margin:0 0 8px; color:var(--primary)}
+
+    .panel{padding:12px}
+    .row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+
+    .people{display:grid; grid-template-columns:1fr; gap:10px}
+    .person{border-left:6px solid #e2e8f0}
+    .person .head{display:grid; grid-template-columns: 1.2fr .8fr .8fr .8fr .9fr .8fr; gap:10px; padding:12px}
+    .person .head h4{margin:0; font-size:1rem; color:var(--primary)}
+    .pill{display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border-radius:999px; font-size:.83rem; font-weight:700}
+    .pill.ok{background:#ecfdf5; color:var(--ok); border:1px solid #c7f1da}
+    .pill.pending{background:#fffbeb; color:#92400e; border:1px solid #fde68a}
+    .pill.overdue{background:#fef2f2; color:#b91c1c; border:1px solid #fecaca}
+
+    .chip{display:inline-flex; align-items:center; gap:6px; background:#fffbea; border:1px solid #fde68a; color:#5b4100;
+      padding:6px 9px; border-radius:999px; font-weight:700}
+    .mini{font-size:.8rem}
+
+    .progress{height:9px; background:#eef2f7; border-radius:999px; overflow:hidden; position:relative}
+    .progress > i{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--accent),#e0b400); transition:width .6s cubic-bezier(.19,1,.22,1)}
+
+    .doclist{border-top:1px dashed #e2e8f0; background:linear-gradient(180deg,#fff, #fbfdff);}
+    .docrow{display:grid; grid-template-columns: 1.2fr .9fr .7fr .7fr .7fr; gap:10px; padding:9px 12px; border-bottom:1px solid #f2f4f8}
+    .docrow:last-child{border-bottom:none}
+    .docrow .status{justify-self:start}
+
+    .twist{cursor:pointer; user-select:none; transition:transform .18s}
+    .rotate{transform:rotate(90deg)}
+
+    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#f3f4f6; border:1px solid #e5e7eb; padding:2px 6px; border-radius:6px; font-size:.87em}
+
+    footer{
+      position:fixed; left:0; right:0; bottom:0; background:rgba(17,17,17,.95); color:#fefce8; padding:8px 12px; text-align:center;
+      font-size:.9rem; box-shadow:0 -8px 16px rgba(17,17,17,.25)
+    }
+
+    @keyframes pop{0%{transform:scale(.96); opacity:.6}100%{transform:scale(1); opacity:1}}
+    .pop{animation:pop .25s ease}
+
+    .cfg-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px}
+    .cfg-grid label{font-size:.82rem; color:#4b5563}
+    .cfg-grid input{width:100%; padding:7px 8px; border:1.5px solid #cfd8dc; border-radius:10px; background:#fafdff}
+
+    .note{font-size:.9rem; color:#35598a}
+
+    /* Mini tabla resumen por categoría dentro del despliegue */
+    .sumcat{width:100%; border-collapse:collapse; margin:10px 12px}
+    .sumcat th,.sumcat td{border:1px solid #eef2f7; padding:6px 8px; font-size:.9rem}
+    .sumcat th{background:#fafafa; text-align:left}
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://www.isovolta.com/logo_isovolta.png" alt="Logo" />
+    <div class="t">
+      <div class="title">Programa de Capacitación — Nuevos Ingresos</div>
+      <div class="desc">Departamento de Formacion del Personal <span class="kbd">(FOP)</span></div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="toolbar">
+      <select id="periodo">
+        <option value="all" selected>Todos (sin filtro de fecha)</option>
+        <option value="7">Ingresos últimos 7 días</option>
+        <option value="14">Ingresos últimos 14 días</option>
+        <option value="30">Ingresos últimos 30 días</option>
+        <option value="60">Ingresos últimos 60 días</option>
+        <option value="90">Ingresos últimos 90 días</option>
+        <option value="180">Ingresos últimos 180 días</option>
+        <option value="custom">Rango personalizado…</option>
+      </select>
+      <input id="desde" type="date" style="display:none">
+      <input id="hasta" type="date" style="display:none">
+
+      <select id="fArea"><option value="">Todas las áreas</option></select>
+      <select id="fPuesto"><option value="">Todos los puestos</option></select>
+      <input id="fNombre" type="text" placeholder="Buscar nombre…" />
+
+      <button class="btn" id="btnRefrescar">Actualizar</button>
+      <input id="inputImport" type="file" accept="application/json" style="display:none" />
+    </div>
+
+    <div class="section card pop">
+      <div class="panel">
+        <h3>Reglas de tiempos máximos por categoría (días desde ingreso)</h3>
+        <div class="cfg-grid" id="cfg"></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="btnGuardarCfg">Formacion</button>
+          <span class="note">Ejemplo: <span class="chip mini">Seguridad = 2 días es el plazo maximo, desde la fecha de ingreso, para completar toda la capacitación de la categoría</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 style="margin:6px 0 8px; display:flex; align-items:center; gap:10px">Personas filtradas <span id="badgeCnt" class="chip mini">0</span></h3>
+      <div class="people" id="people"></div>
+    </div>
+  </div>
+
+
+<script>
+// =========================
+// Bases de datos
+// =========================
+const ILUO_DB = 'ILUO_DB';
+const ILUO_STORE = 'respaldo';
+const OBD_DB = 'SeguimientoDB';
+const OBD_STORE = 'indexOBD';
+
+function openDB(name, version=1, onup){
+  return new Promise((resolve, reject) => {
+    const v = (typeof version === 'number' && !Number.isNaN(version)) ? version : 1;
+    const r = indexedDB.open(name, v);
+    r.onupgradeneeded = (e) => { onup && onup(e.target.result); };
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = (e) => reject(e.target.error);
+  });
+}
+function idbGet(db, store, key){
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(store,'readonly');
+    const st = tx.objectStore(store);
+    const req = st.get(key);
+    req.onsuccess = () => resolve(req.result ? req.result.valor : null);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+function idbPut(db, store, key, value){
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(store,'readwrite');
+    const st = tx.objectStore(store);
+    st.put({clave:key, valor:value});
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e.target.error);
+  });
+}
+
+let iluo, obd;
+async function ensureDBs(){
+  iluo = await openDB(ILUO_DB, 1, (db)=>{
+    if(!db.objectStoreNames.contains(ILUO_STORE)) db.createObjectStore(ILUO_STORE, {keyPath:'clave'});
+  });
+  obd = await openDB(OBD_DB, 1, (db)=>{
+    if(!db.objectStoreNames.contains(OBD_STORE)) db.createObjectStore(OBD_STORE, {keyPath:'clave'});
+  });
+}
+
+// ===== Datos en memoria
+let personas = [];      // de matrizILUO
+let documentos = [];    // de documentosILUO
+let reglas = {};        // tiempos máximos (tu config FOP)
+
+const CATEGORIAS_BASE = [
+  'Normatividad','Valores','Seguridad','Lean','Calidad','Eficiencia','Sin Clasificar'
+];
+const DEFAULT_REGLAS = {
+  'Normatividad':2,'Valores':2,'Seguridad':2,'Lean':7,'Calidad':15,'Eficiencia':30,'Sin Clasificar':30
+};
+
+// ===== Carga de datos
+async function cargarRespaldos(){
+  personas   = (await idbGet(iluo, ILUO_STORE, 'matrizILUO')) || [];
+  documentos = (await idbGet(iluo, ILUO_STORE, 'documentosILUO')) || [];
+}
+async function cargarReglas(){
+  reglas = (await idbGet(obd, OBD_STORE, 'trainingRulesV1')) || {...DEFAULT_REGLAS};
+}
+async function guardarReglas(){
+  const inputs = document.querySelectorAll('[data-categoria]');
+  const out = {};
+  inputs.forEach(i=>{ out[i.dataset.categoria] = Math.max(0, parseInt(i.value||'0',10)||0); });
+  reglas = out;
+  await idbPut(obd, OBD_STORE, 'trainingRulesV1', reglas);
+  toast('Reglas guardadas en indexOBD');
+  render();
+}
+
+// ===== Helpers de tiempo
+function parseISO(d){ return d? new Date(d): null; }
+function fmt(d){ if(!d) return ''; const z=new Date(d); return z.toISOString().slice(0,10); }
+function addDays(base, days){ const d=new Date(base); d.setDate(d.getDate()+days); return d; }
+function diffDays(a,b){ const MS=86400000; return Math.floor((a - b)/MS); }
+
+// ===== Config UI
+function buildCfgForm(){
+  const host = document.getElementById('cfg');
+  host.innerHTML = '';
+  CATEGORIAS_BASE.forEach(cat=>{
+    const v = reglas[cat] ?? DEFAULT_REGLAS[cat] ?? 0;
+    const box = document.createElement('div');
+    box.innerHTML = `<label>${cat}</label><input type="number" min="0" step="1" value="${v}" data-categoria="${cat}"/>`;
+    host.appendChild(box);
+  });
+}
+function fillDropdowns(){
+  const sArea = document.getElementById('fArea');
+  const sPuesto = document.getElementById('fPuesto');
+  const areas = [...new Set(personas.map(p=> (p.area||'').trim()).filter(Boolean))].sort();
+  sArea.innerHTML = '<option value="">Todas las áreas</option>' + areas.map(a=>`<option>${a}</option>`).join('');
+  const puestos = [...new Set(personas.map(p=> (p.puesto||'').trim()).filter(Boolean))].sort();
+  sPuesto.innerHTML = '<option value="">Todos los puestos</option>' + puestos.map(a=>`<option>${a}</option>`).join('');
+}
+function currentRange(){
+  const v = document.getElementById('periodo').value;
+  if(v==='all'){ return {desde:null, hasta:null}; }
+  if(v==='custom'){
+    const d = document.getElementById('desde').value ? new Date(document.getElementById('desde').value) : null;
+    const h = document.getElementById('hasta').value ? new Date(document.getElementById('hasta').value) : null;
+    return {desde:d, hasta:h};
+  }
+  const days = parseInt(v,10);
+  const hasta = new Date();
+  const desde = addDays(hasta, -days);
+  return {desde, hasta};
+}
+function toggleCustom(){
+  const v = document.getElementById('periodo').value;
+  const show = v==='custom';
+  document.getElementById('desde').style.display = show? 'inline-block':'none';
+  document.getElementById('hasta').style.display = show? 'inline-block':'none';
+}
+
+// ===== Núcleo (requerimientos x puesto/área)
+function docsRequeridosPorPuesto(puesto, area){
+  const P = (puesto||'').trim().toLowerCase();
+  const A = (area||'').trim().toLowerCase();
+  return documentos.filter(d=> (d.puesto||'').trim().toLowerCase()===P && (d.area||'').trim().toLowerCase()===A);
+}
+
+// ===== Cálculo de estado + RESUMEN ILUO (PUNTOS → NIVEL/CATEGORÍA)
+function calcularResumenILUO(persona){
+  const req = docsRequeridosPorPuesto(persona.puesto, persona.area);
+  const catPorCodigo = new Map(req.map(d => [(d.codigo||d.documento||'').trim(), d.tipoCategoria || 'Sin Clasificar']));
+
+  const categorias = {
+    "Normatividad": { pts: 5, valores: [] },
+    "Valores":      { pts: 5, valores: [] },
+    "Seguridad":    { pts: 15, valores: [] },
+    "Lean":         { pts: 15, valores: [] },
+    "Calidad":      { pts: 30, valores: [] },
+    "Eficiencia":   { pts: 30, valores: [] },
+    "Sin Clasificar": { pts: 0, valores: [] }
+  };
+
+  (persona.documentacion||[]).forEach(reg=>{
+    const codigo = (reg.codigo || reg.nombre || reg.documento || '').trim();
+    const tipo = catPorCodigo.get(codigo) || reg.tipoCategoria || 'Sin Clasificar';
+    const val = parseFloat(reg.calificacion);
+    if(!isNaN(val)){
+      if(!categorias[tipo]) categorias[tipo] = {pts:0, valores:[]};
+      categorias[tipo].valores.push(val);
+    }
+  });
+
+  let total=0;
+  const resumen=[];
+  Object.entries(categorias).forEach(([nombre, {pts, valores}])=>{
+    const prom = valores.length ? valores.reduce((a,b)=>a+b,0)/valores.length : 0;
+    const puntos = prom * pts / 100;
+    total += puntos;
+    resumen.push({nombre, pts, prom, puntos});
+  });
+
+  let nivel="", letra="";
+  if (total >= 95) { nivel="Maestro";          letra="A"; }
+  else if (total >= 90) { nivel="Experto";     letra="B"; }
+  else if (total >= 80) { nivel="Competente";  letra="C"; }
+  else if (total >= 70) { nivel="Semicompetente"; letra="D"; }
+  else if (total >= 50) { nivel="Entrenamiento";  letra="E"; }
+  else { nivel="Sin Clasificar"; letra="-"; }
+
+  return { total: Math.round(total*10)/10, nivel, letra, resumen };
+}
+
+function buildEstadoPersona(p){
+  const fechaIng = parseISO(p.fechaIngreso);
+  if(!fechaIng) return null;
+  const hoy = new Date();
+  const dias = diffDays(hoy, fechaIng);
+  const req = docsRequeridosPorPuesto(p.puesto, p.area);
+
+  const docMap = new Map();
+  (p.documentacion||[]).forEach(d=>{ if(d && (d.codigo || d.nombre)) docMap.set(d.codigo||d.nombre, d); });
+
+  let total=req.length, ok=0, pending=0, overdue=0;
+  const detalle = req.map(doc=>{
+    const cat = doc.tipoCategoria || 'Sin Clasificar';
+    const limite = reglas[cat] ?? DEFAULT_REGLAS[cat] ?? 0;
+    const vence = addDays(fechaIng, limite);
+    const completado = !!docMap.get(doc.codigo) || !!docMap.get(doc.documento);
+    let estado='pending';
+    if(completado) estado='ok'; else if(new Date() > vence) estado='overdue';
+    if(estado==='ok') ok++; else if(estado==='overdue') overdue++; else pending++;
+    return { codigo:doc.codigo||'', documento:doc.documento||'', categoria:cat, limiteDias:limite, vence, estado };
+  });
+
+  const iluo = calcularResumenILUO(p); // <-- NUEVO: resumen + nivel/letra
+  return {fechaIng, dias, total, ok, pending, overdue, detalle, iluo};
+}
+
+// ===== Render
+function render(){
+  buildCfgForm();
+  const people = document.getElementById('people');
+  people.innerHTML='';
+
+  const {desde, hasta} = currentRange();
+  const fa = (document.getElementById('fArea').value||'').trim();
+  const fp = (document.getElementById('fPuesto').value||'').trim();
+  const fn = (document.getElementById('fNombre').value||'').toLowerCase();
+
+  let list = personas.filter(p=>{
+    if(!p.fechaIngreso) return false;
+    const d = parseISO(p.fechaIngreso);
+    if(!d) return false;
+    if(desde && d < desde) return false;
+    if(hasta && d > addDays(hasta, 1)) return false; // inclusive
+    if(fa && (p.area||'')!==fa) return false;
+    if(fp && (p.puesto||'')!==fp) return false;
+    if(fn && !(p.nombre||'').toLowerCase().includes(fn)) return false;
+    return true;
+  });
+
+  document.getElementById('badgeCnt').textContent = list.length;
+  list.sort((a,b)=> new Date(b.fechaIngreso) - new Date(a.fechaIngreso));
+
+  list.forEach(p=>{
+    const est = buildEstadoPersona(p);
+    if(!est) return;
+
+    const card = document.createElement('div');
+    card.className = 'card person pop';
+
+    const estadoPill = est.overdue>0 ? 'overdue' : (est.pending>0 ? 'pending':'ok');
+    const estadoTxt = est.overdue>0 ? 'Vencido' : (est.pending>0 ? 'Pendiente' : 'Completo');
+
+    const iluoChip = `<span class="chip mini" title="Resultado total ILUO">${est.iluo.total}% — ${est.iluo.nivel} (Cat. ${est.iluo.letra})</span>`;
+
+    card.innerHTML = `
+      <div class="head">
+        <div>
+          <h4>${p.nombre||''}</h4>
+          <div class="mini" style="color:#5b6b7a">#${p.numero||''}</div>
+        </div>
+        <div><strong>Área:</strong><br>${p.area||''}</div>
+        <div><strong>Puesto:</strong><br>${p.puesto||''}</div>
+        <div><strong>Ingreso:</strong><br>${fmt(est.fechaIng)} <span class="mini" style="color:#64748b">(${est.dias} días)</span></div>
+        <div>
+          <strong>Avance:</strong>
+          <div class="progress" title="${est.ok}/${est.total}"><i style="width:${est.total? (est.ok/est.total*100).toFixed(0):0}%"></i></div>
+          <div class="mini" style="color:#475569; margin-top:4px">${est.ok}/${est.total} completos</div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px">
+          ${iluoChip}
+          <span class="pill ${estadoPill}">${estadoTxt}</span>
+          <span class="twist" title="Ver documentos">▶</span>
+        </div>
+      </div>
+      <div class="doclist" style="display:none"></div>
+    `;
+
+    const twist = card.querySelector('.twist');
+    const docHost = card.querySelector('.doclist');
+
+    twist.addEventListener('click', ()=>{
+      const open = docHost.style.display !== 'none';
+      docHost.style.display = open? 'none':'block';
+      twist.classList.toggle('rotate', !open);
+      if(!open){
+        // Resumen por categoría (tabla)
+        const rows = est.iluo.resumen.map(r=>`
+          <tr>
+            <td>${r.nombre}</td>
+            <td>${r.pts}%</td>
+            <td>${r.prom.toFixed(1)}%</td>
+            <td>${r.puntos.toFixed(1)}%</td>
+          </tr>
+        `).join('');
+        const resumenHTML = `
+          <table class="sumcat">
+            <thead><tr><th>Categoría</th><th>Ponderación</th><th>Promedio</th><th>Puntos</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <div class="mini" style="font-weight:700; margin:0 12px 8px">
+            Resultado Total: ${est.iluo.total}% → Nivel: ${est.iluo.nivel} (Categoría ${est.iluo.letra})
+          </div>
+        `;
+
+        // Lista de documentos requeridos
+        docHost.innerHTML = resumenHTML;
+        est.detalle.forEach(d=>{
+          const row = document.createElement('div');
+          row.className = 'docrow';
+          const pill = d.estado==='ok'? 'ok' : (d.estado==='overdue'? 'overdue' : 'pending');
+          const title = d.estado==='ok'? 'Completado' : (d.estado==='overdue'? 'Vencido' : 'Pendiente');
+          row.innerHTML = `
+            <div><strong>${d.codigo||''}</strong> — ${d.documento||''}</div>
+            <div>${d.categoria}</div>
+            <div>Máx: ${d.limiteDias} días</div>
+            <div>Vence: ${fmt(d.vence)}</div>
+            <div class="status"><span class="pill ${pill}">${title}</span></div>
+          `;
+          docHost.appendChild(row);
+        });
+      }
+    });
+
+    people.appendChild(card);
+  });
+}
+
+// ===== UI: varios
+function toast(msg){
+  const f = document.querySelector('footer');
+  if (!f) { alert(msg); return; }
+  const orig = f.textContent; f.textContent = '✓ ' + msg; f.style.background = 'rgba(15,115,60,.95)';
+  setTimeout(()=>{ f.textContent = orig; f.style.background = 'rgba(17,17,17,.95)' }, 2100);
+}
+function exportarReglas(){
+  const blob = new Blob([JSON.stringify({trainingRulesV1:reglas}, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='training_rules_indexOBD.json'; a.click(); URL.revokeObjectURL(url);
+}
+function importarReglas(file){
+  const r = new FileReader();
+  r.onload = async (e)=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(data.trainingRulesV1){
+        reglas = data.trainingRulesV1;
+        await idbPut(obd, OBD_STORE, 'trainingRulesV1', reglas);
+        toast('Reglas importadas');
+        render();
+      }else{ alert('El archivo no contiene "trainingRulesV1"'); }
+    }catch(err){ alert('Archivo inválido'); }
+  };
+  r.readAsText(file);
+}
+
+// ===== Init
+(async function(){
+  await ensureDBs();
+  await cargarRespaldos();
+  await cargarReglas();
+  buildCfgForm();
+  fillDropdowns();
+  render();
+
+  document.getElementById('btnGuardarCfg').addEventListener('click', guardarReglas);
+  document.getElementById('btnRefrescar').addEventListener('click', ()=>{ cargarRespaldos().then(()=>{ fillDropdowns(); render(); });});
+  document.getElementById('periodo').addEventListener('change', ()=>{ toggleCustom(); render(); });
+  document.getElementById('desde').addEventListener('change', render);
+  document.getElementById('hasta').addEventListener('change', render);
+  document.getElementById('fArea').addEventListener('change', render);
+  document.getElementById('fPuesto').addEventListener('change', render);
+  document.getElementById('fNombre').addEventListener('input', render);
+
+  document.getElementById('btnExport').addEventListener('click', exportarReglas);
+  const input = document.getElementById('inputImport');
+  document.getElementById('btnImport').addEventListener('click', ()=> input.click());
+  input.addEventListener('change', (e)=>{ if(e.target.files && e.target.files[0]) importarReglas(e.target.files[0]); });
+})();
+</script>
+</body>
+</html>

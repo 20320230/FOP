@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestion del Personal</title>
+  <link rel="icon" type="image/png" href="Isovolta.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f7fb;
+      margin: 0; padding: 0 0 65px 0;
+    }
+    .topbar {
+      display: flex; align-items: center; background: #fff;
+      box-shadow: 0 2px 19px #00499013;
+      padding: 0 38px; height: 65px; border-bottom: 1.5px solid #e0e6ee;
+      position: sticky; top: 0; z-index: 150;
+    }
+    .topbar .logo { height: 38px; margin-right: 16px;}
+    .topbar .title { font-weight: 900; font-size: 1.23em; letter-spacing: .7px;}
+    .full-header.compact {
+      display: flex; align-items: center; gap: 13px; background: #fff; border-radius: 16px;
+      box-shadow: 0 2px 17px #00499013; padding: 11px 22px 8px 22px; margin: 15px auto 0 auto; max-width: 1100px;
+      min-height: 0;
+    }
+    .full-header.compact .icon { font-size: 2em; background: #eaf2fc; border-radius: 50%; padding: 11px; margin-right: 10px; color: #004990;}
+    .full-header.compact .big-title { font-size: 1.25em; font-weight: 900; margin-bottom: 1px; color: #004990;}
+    .full-header.compact .desc { color: #6681b3; font-size: 1em; }
+    .regresar-bar {
+      display: flex; align-items: center; margin: 8px 0 7px 0; max-width: 1100px; margin-left: auto; margin-right: auto;
+    }
+    .regresar-btn {
+      background: #004990; color: #fff; font-size: 1.12em; font-weight: 700;
+      border: none; border-radius: 11px; padding: 10px 30px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+      transition: background .14s, box-shadow .16s; box-shadow: 0 2px 12px #00499016;
+    }
+    .regresar-btn:hover { background: #f4d307; color: #004990; }
+    .container.compact { 
+      max-width: 1100px; margin: 0 auto 17px auto; background: #fff;
+      border-radius: 14px; box-shadow: 0 6px 18px rgba(0,32,91,0.07); 
+      padding: 13px 9px 9px 9px;
+    }
+    .filter-row.compact {
+      display: flex; gap: 8px; align-items: center; margin: 7px 0 7px 0; flex-wrap: wrap;
+    }
+    .filter-row.compact input, .filter-row.compact select {
+      padding: 8px 12px; border-radius: 8px; border: 1.6px solid #e0e6ee; font-size: 1em; background: #fafdff;
+    }
+    .filter-row.compact input:focus, .filter-row.compact select:focus { border: 1.8px solid #004990; outline: none;}
+    .table-scroll { 
+      overflow-x: auto; 
+      max-height: 65vh; 
+      border-radius: 12px; 
+      background: #fafdff; 
+      box-shadow: 0 1px 9px #00499008; 
+      margin-bottom: 13px;
+    }
+    table {
+      width: 100%; border-collapse: separate; border-spacing: 0; font-size: 15px;
+      background: #fafdff; border-radius: 11px;
+      min-width: 900px;
+    }
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: #015197;
+      color: #fff;
+      font-weight: 600;
+      letter-spacing: .5px;
+      box-shadow: 0 3px 10px #00499014;
+      border-top: none;
+    }
+    th, td {
+      padding: 13px 10px;
+      border-bottom: 1.5px solid #e4e9f2;
+      text-align: left;
+      vertical-align: middle;
+    }
+    tr { transition: background 0.11s; }
+    tbody tr:nth-child(even) { background: #fcfcf6; }
+    tbody tr:hover { background: #e8f0fa; }
+    td[contenteditable="true"] { background-color: #fffbe6; transition: background 0.2s;}
+    td[contenteditable="true"]:focus { background: #eaf6ff; outline: 2px solid #b7e0fd;}
+    input[type="date"] {
+      padding: 5px 8px; border: 1px solid #ccd6df; border-radius: 5px;
+      width: 100%; font-size: 15px; background: #f8fcfd; box-sizing: border-box;
+    }
+    button.delete-btn {
+      background-color: #c62828; color: white; border: none; padding: 6px 13px; border-radius: 6px;
+      cursor: pointer; font-weight: 600; font-size: 1em; box-shadow: 0 1px 5px #c6282807; transition: background 0.18s;
+    }
+    button.delete-btn:hover { background-color: #b71c1c; }
+    .actions {
+      text-align: center; margin-top: 17px;
+    }
+    .btn {
+      background: #004990; color: #fff; border: none; border-radius: 8px;
+      font-size: 1.11em; font-weight: bold; padding: 9px 23px; cursor: pointer;
+      margin: 0 10px 5px 0; letter-spacing: .3px; box-shadow: 0 2px 8px #00499009;
+      transition: background 0.18s, transform 0.15s, box-shadow 0.16s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn:hover {
+      background: #f4d307; color: #004990; transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 5px 14px #00499015;
+    }
+    footer {
+      width: 100vw;
+      background: #004990e0;
+      color: #e7eaf3;
+      text-align: center;
+      padding: 4px 0 2px 0;
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      font-size: 0.81em;
+      letter-spacing: 0.5px;
+      z-index: 60;
+      border-bottom-left-radius: 9px;
+      border-bottom-right-radius: 9px;
+      box-shadow: 0 -2px 10px #00499018;
+      backdrop-filter: blur(3px);
+      opacity: 0.86;
+      transition: background .2s, opacity .2s;
+      user-select: none;
+    }
+    footer:hover { opacity: 1; }
+    @media (max-width: 1100px) {.container.compact {padding: 7px 2vw 7px 2vw;} }
+    @media (max-width: 800px) {.full-header.compact {padding: 8px 4vw; gap:7px;} .container.compact {padding: 5px 2vw 4px 2vw;} }
+    @media (max-width: 600px) {.container.compact{padding:0;} .full-header.compact{flex-direction:column;align-items:flex-start;gap:6px;} }
+  </style>
+</head>
+<body>
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <img src="https://www.isovolta.com/logo_isovolta.png" class="logo" alt="Logo" />
+    <span class="title"></span>
+  </div>
+  <!-- ENCABEZADO PRINCIPAL (MÁS ARRIBA) -->
+  <div class="full-header compact">
+    <i class="fa fa-users icon"></i>
+    <div>
+      <div class="big-title">Gestión de Personal</div>
+      <div class="desc">Administra y visualiza todos los empleados</div>
+    </div>
+  </div>
+  <!-- REGRESAR -->
+  <div class="regresar-bar">
+  
+  </div>
+  <!-- FILTROS Y TABLA -->
+  <div class="container compact">
+    <div class="filter-row compact">
+      <select id="filtroArea" onchange="onAreaFilter()" style="min-width:110px;"></select>
+      <select id="filtroPuesto" onchange="filtrarPersonas()" style="min-width:120px;"></select>
+      <input type="text" id="filtroNombre" placeholder="Buscar por nombre..." oninput="filtrarPersonas()" style="min-width:145px;">
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Número</th><th>Nombre</th><th>Puesto</th><th>Área</th><th>Fecha Ingreso</th><th>Eliminar</th>
+          </tr>
+        </thead>
+        <tbody id="tablaPersonas"></tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="agregarPersona()"><i class="fa fa-user-plus"></i> Agregar Persona</button>
+      <button class="btn" onclick="guardarPersonas()"><i class="fa fa-save"></i> Guardar Cambios</button>
+    </div>
+  </div>
+
+  <script>
+
+const DB_NAME = 'ILUO_DB';
+const DB_VERSION = 1;
+const STORE_NAME = 'respaldo';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'clave' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
+
+async function guardarEnIndexedDB(clave, valor) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.put({ clave, valor });
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function leerDeIndexedDB(clave) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.get(clave);
+    req.onsuccess = () => resolve(req.result ? req.result.valor : null);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+
+async function migrarLocalStorageAIndexedDB() {
+  const clave = "matrizILUO";
+  const val = localStorage.getItem(clave);
+  if (val && !(await leerDeIndexedDB(clave))) {
+    await guardarEnIndexedDB(clave, JSON.parse(val));
+
+  }
+}
+
+let personasFull = [];
+let areasUnicas = [];
+let puestosPorArea = {};
+let areaActiva = "";
+let puestoActivo = "";
+
+async function cargarPersonas() {
+  await migrarLocalStorageAIndexedDB();
+  personasFull = await leerDeIndexedDB("matrizILUO") || [];
+
+  areasUnicas = [...new Set(personasFull.map(p => (p.area||"").trim()).filter(Boolean))].sort();
+
+  puestosPorArea = {};
+  personasFull.forEach(p => {
+    const area = (p.area||"").trim();
+    const puesto = (p.puesto||"").trim();
+    if (!area || !puesto) return;
+    if (!puestosPorArea[area]) puestosPorArea[area] = [];
+    if (!puestosPorArea[area].includes(puesto)) puestosPorArea[area].push(puesto);
+  });
+
+ 
+  const selArea = document.getElementById("filtroArea")?.value;
+  const selPuesto = document.getElementById("filtroPuesto")?.value;
+  areaActiva = selArea !== undefined && selArea !== null ? selArea : (areasUnicas[0] || "");
+  puestoActivo = selPuesto !== undefined && selPuesto !== null ? selPuesto : "";
+
+  cargarDropdowns();
+  filtrarPersonas();
+}
+
+
+function cargarDropdowns() {
+
+  const areaSel = document.getElementById("filtroArea");
+  areaSel.innerHTML = ['<option value="">Todos</option>'].concat(
+    areasUnicas.map(area =>
+      `<option value="${area}" ${area === areaActiva ? "selected" : ""}>${area}</option>`
+    )
+  ).join("");
+ 
+  cargarDropdownPuestos();
+}
+
+function cargarDropdownPuestos() {
+  const puestoSel = document.getElementById("filtroPuesto");
+  let puestos = [];
+  if (!areaActiva) {
+
+    puestos = [...new Set(personasFull.map(p => (p.puesto||"").trim()).filter(Boolean))].sort();
+  } else {
+    puestos = puestosPorArea[areaActiva] || [];
+  }
+  puestoSel.innerHTML = ['<option value="">Todos los puestos</option>'].concat(
+    puestos.map(puesto =>
+      `<option value="${puesto}" ${puesto === puestoActivo ? "selected" : ""}>${puesto}</option>`
+    )
+  ).join("");
+  if (!puestos.includes(puestoActivo)) puestoActivo = "";
+}
+
+function onAreaFilter() {
+  areaActiva = document.getElementById("filtroArea").value;
+  puestoActivo = ""; // reset puesto
+  cargarDropdownPuestos();
+  filtrarPersonas();
+}
+
+function filtrarPersonas() {
+  let nombreFiltro = (document.getElementById("filtroNombre")?.value || "").toLowerCase();
+  let numeroFiltro = (document.getElementById("filtroNumero")?.value || "").toLowerCase();
+  areaActiva = document.getElementById("filtroArea").value;
+  puestoActivo = document.getElementById("filtroPuesto").value;
+
+  const tbody = document.getElementById("tablaPersonas");
+  tbody.innerHTML = "";
+  let filtrados = personasFull.filter(p =>
+    (!areaActiva || (p.area||"") === areaActiva) &&
+    (!puestoActivo || (p.puesto||"") === puestoActivo) &&
+    (!nombreFiltro || (p.nombre||"").toLowerCase().includes(nombreFiltro)) &&
+    (!numeroFiltro || (p.numero||"").toLowerCase().includes(numeroFiltro))
+  );
+  filtrados.forEach((p) => {
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td contenteditable="true">${p.numero}</td>
+      <td contenteditable="true">${p.nombre}</td>
+      <td contenteditable="true">${p.puesto}</td>
+      <td contenteditable="true">${p.area}</td>
+      <td><input type="date" value="${p.fechaIngreso || ''}"></td>
+      <td><button class="delete-btn" onclick="eliminarPersonaPorNumero('${p.numero}')">Eliminar</button></td>
+    `;
+    tbody.appendChild(fila);
+  });
+}
+
+async function agregarPersona() {
+  const personas = await leerDeIndexedDB("matrizILUO") || [];
+  personas.push({ numero: "", nombre: "", puesto: "", area: "", fechaIngreso: "", foto: "", documentacion: [] });
+  await guardarEnIndexedDB("matrizILUO", personas);
+  cargarPersonas();
+}
+
+
+async function guardarPersonas() {
+
+  let personasGuardadas = await leerDeIndexedDB("matrizILUO") || [];
+  let nuevas = [];
+
+  let editados = [];
+  document.querySelectorAll("#tablaPersonas tr").forEach((fila) => {
+    const celdas = fila.querySelectorAll("td");
+    const fechaInput = celdas[4].querySelector("input[type='date']");
+    const numero = celdas[0].innerText.trim();
+    editados.push(numero);
+   
+    const existente = personasGuardadas.find(p => p.numero === numero);
+    nuevas.push({
+      numero: numero,
+      nombre: celdas[1].innerText.trim(),
+      puesto: celdas[2].innerText.trim(),
+      area: celdas[3].innerText.trim(),
+      fechaIngreso: fechaInput ? fechaInput.value : "",
+      foto: existente?.foto || "",
+      documentacion: existente?.documentacion || []
+    });
+  });
+ 
+  personasGuardadas.forEach(p => {
+    if (!editados.includes(p.numero)) {
+      nuevas.push(p);
+    }
+  });
+  await guardarEnIndexedDB("matrizILUO", nuevas);
+  alert("Personas actualizadas correctamente");
+  cargarPersonas();
+}
+
+async function eliminarPersonaPorNumero(numero) {
+  const pass = prompt("Ingrese contraseña para eliminar:");
+  if (pass !== "Isovolta2025") {
+    alert("Contraseña incorrecta");
+    return;
+  }
+  let personas = await leerDeIndexedDB("matrizILUO") || [];
+  const index = personas.findIndex(p => p.numero === numero);
+  if (index >= 0) {
+    personas.splice(index, 1);
+    await guardarEnIndexedDB("matrizILUO", personas);
+    cargarPersonas();
+  } else {
+    alert("No se encontró a la persona con número " + numero);
+  }
+}
+
+
+cargarPersonas();
+</script>
+
+</body>
+</html>
+

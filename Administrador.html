@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Administrador ILUO - Isovolta</title>
+  <link rel="icon" type="image/png" href="Isovolta.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family:'Segoe UI',sans-serif; background:#eef1f7; margin:0; padding:0 0 60px }
+    .topbar{display:flex;align-items:center;background:#fff;box-shadow:0 2px 19px #00499013;padding:0 38px;height:65px;border-bottom:1.5px solid #e0e6ee;position:sticky;top:0;z-index:150}
+    .topbar .logo{height:38px;margin-right:16px}
+    .admin-header{display:flex;align-items:center;gap:13px;background:#fff;border-radius:15px;box-shadow:0 2px 17px #00499013;padding:13px 23px 11px;margin:17px auto 8px;max-width:1100px}
+    .icon-admin{font-size:2.3em;background:#ffe272;border-radius:50%;padding:12px;color:#004990;border:3.5px solid #ffe27242; margin-right:12px; box-shadow:0 1.5px 6px #ffc30016; animation:admin-bounce 1.7s infinite cubic-bezier(.7,0,.4,1.3)}
+    @keyframes admin-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    .big-title{font-size:1.28em;font-weight:900;margin-bottom:1.5px;color:#004990;letter-spacing:.5px}
+    .desc{color:#6681b3;font-size:1em}
+    .filter-container{display:flex;gap:10px;flex-wrap:wrap;margin:16px auto 10px;justify-content:flex-start;max-width:1100px}
+    .filter-container input,.filter-container select{padding:7px 13px;border-radius:8px;border:1.6px solid #cfd8dc;font-size:1em;outline:none;background:#f5f8fa;margin-bottom:5px;transition:border .13s}
+    .filter-container input:focus,.filter-container select:focus{border-color:#004990;background:#eaf2fc}
+    .btn,.table-btn{display:inline-flex;align-items:center;gap:7px;background:#004990;border:none;color:#fff;font-weight:600;border-radius:8px;font-size:1em;padding:9px 23px;box-shadow:0 2px 9px #0049900d;cursor:pointer;transition:background .18s,color .14s,transform .13s,box-shadow .18s;margin:2px 7px 10px 0}
+    .btn:hover,.table-btn:hover{background:#f4d307;color:#004990;transform:translateY(-2px) scale(1.04);box-shadow:0 7px 22px #00499021}
+    .table-btn{background:linear-gradient(90deg,#ef4444 65%,#be1818 100%);padding:7px 18px;font-size:1em;gap:5px;color:#fff;border-radius:7px;margin:0}
+    .table-btn:hover{background:linear-gradient(90deg,#be1818 65%,#ef4444 100%);color:#fff}
+
+    .table-container{width:100%;max-width:1800px;margin:0 auto;border-radius:14px;background:#fff;overflow-x:auto;max-height:70vh;overflow-y:auto;padding:0;box-shadow:0 0 18px #00205b0b}
+    table{width:100%;border-radius:14px;background:#fff;border-collapse:collapse;table-layout:auto;min-width:950px}
+    th,td{border:1px solid #d5d7de;padding:9px 13px;white-space:nowrap;text-align:left}
+    th{background:#00205B;color:#fff;font-weight:600;letter-spacing:.3px;position:sticky;top:0;z-index:2}
+    td[contenteditable="true"]{background:#f8fcfd;transition:background .2s}
+    td[contenteditable="true"]:focus{background:#e2eaf7}
+
+    @media (max-width:1100px){.admin-header,.filter-container,.table-container{max-width:99vw} table{min-width:800px}}
+    @media (max-width:800px){.admin-header{padding:8px 4vw} .btn,.table-btn{font-size:.98em;padding:8px 14px} table{font-size:13px} th,td{padding:7px 5px}}
+    @media (max-width:650px){.admin-header{flex-direction:column;align-items:flex-start;gap:7px} .btn,.table-btn{font-size:.91em;padding:7px 8px} table{font-size:11px;min-width:650px} th,td{padding:5px 4px}}
+
+    footer{width:100vw;background:#004990e0;color:#e7eaf3;text-align:center;padding:3px 0 2px;position:fixed;left:0;bottom:0;font-size:.81em;letter-spacing:.5px;z-index:60;border-bottom-left-radius:9px;border-bottom-right-radius:9px;box-shadow:0 -2px 10px #00499018;backdrop-filter:blur(3px);opacity:.84;transition:background .2s,opacity .2s;user-select:none}
+    footer:hover{opacity:1}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <img src="https://www.isovolta.com/logo_isovolta.png" class="logo" alt="Logo" />
+    <span class="title"></span>
+  </div>
+
+  <div class="admin-header">
+    <i class="fas fa-user-shield icon-admin"></i>
+    <div>
+      <div class="big-title">Administrador ILUO</div>
+      <div class="desc">Panel maestro de documentos por área/puesto</div>
+    </div>
+  </div>
+
+  <div class="filter-container" id="filtrosArriba">
+    <select id="filtroArea" style="min-width:170px;margin-right:7px;" onchange="onAreaChange()"></select>
+    <select id="filtroPuesto" style="min-width:200px;margin-right:20px;" onchange="onPuestoChange()"></select>
+    <input type="text" id="filtroCodigo" placeholder="Filtrar por Código" oninput="filtrarTabla()">
+    <input type="text" id="filtroDocumento" placeholder="Filtrar por Documento" oninput="filtrarTabla()">
+    <input type="text" id="filtroCapacitador" placeholder="Filtrar por Capacitador" oninput="filtrarTabla()">
+  </div>
+
+  <div style="margin-bottom:9px; max-width:1100px; margin-left:auto; margin-right:auto;">
+    <button class="btn" onclick="agregarDocumento()"><i class="fa fa-plus"></i> Agregar Documento</button>
+    <button class="btn" onclick="guardarCambios()"><i class="fa fa-save"></i> Guardar Cambios</button>
+  </div>
+
+  <div class="table-container" id="contenedorTabla"></div>
+
+
+<script>
+// ================== IndexedDB ==================
+const DB_NAME = 'ILUO_DB';
+const DB_VERSION = 1;
+const STORE_NAME = 'respaldo';
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e)=>{
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains(STORE_NAME)){
+        db.createObjectStore(STORE_NAME,{keyPath:'clave'});
+      }
+    };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = (e)=>reject(e.target.error);
+  });
+}
+async function guardarEnIndexedDB(clave, valor){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE_NAME,'readwrite');
+    tx.objectStore(STORE_NAME).put({clave,valor});
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = (e)=>reject(e.target.error);
+  });
+}
+async function leerDeIndexedDB(clave){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(STORE_NAME,'readonly');
+    const get = tx.objectStore(STORE_NAME).get(clave);
+    get.onsuccess = ()=>resolve(get.result ? get.result.valor : null);
+    get.onerror = (e)=>reject(e.target.error);
+  });
+}
+async function migrarLocalStorageAIndexedDB(){
+  const claves=["documentosILUO","matrizILUO"];
+  for(const clave of claves){
+    const val = localStorage.getItem(clave);
+    if(val && !(await leerDeIndexedDB(clave))){
+      await guardarEnIndexedDB(clave, JSON.parse(val));
+    }
+  }
+}
+
+// ================== Estado ==================
+let personasILUO=[];
+let documentosILUO=[];
+let areas=[];
+let puestosPorArea={};
+let areaActiva="";
+let puestoActivo="";
+
+function genId(){ return 'id_' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
+function ensureIds(){
+  let changed=false;
+  documentosILUO.forEach(d=>{ if(!d._id){ d._id = genId(); changed=true; }});
+  if(changed) guardarEnIndexedDB("documentosILUO", documentosILUO);
+}
+
+// ================== Init ==================
+window.onload = async function(){
+  await migrarLocalStorageAIndexedDB();
+  personasILUO   = await leerDeIndexedDB("matrizILUO") || [];
+  documentosILUO = await leerDeIndexedDB("documentosILUO") || [];
+  ensureIds();
+
+  areas = [...new Set(personasILUO.map(p => (p.area||"").trim()).filter(Boolean))].sort();
+  puestosPorArea={};
+  personasILUO.forEach(p=>{
+    const area=(p.area||"").trim();
+    const puesto=(p.puesto||"").trim();
+    if(!area||!puesto) return;
+    if(!puestosPorArea[area]) puestosPorArea[area]=[];
+    if(!puestosPorArea[area].includes(puesto)) puestosPorArea[area].push(puesto);
+  });
+
+  areaActiva = areas[0] || "";
+  puestoActivo = puestosPorArea[areaActiva]?.[0] || "";
+
+  cargarDropdowns();
+  renderTabla();
+};
+
+function cargarDropdowns(){
+  const areaSel=document.getElementById("filtroArea");
+  areaSel.innerHTML = areas.map(a=>`<option value="${a}" ${a===areaActiva?"selected":""}>${a}</option>`).join("");
+  cargarDropdownPuestos();
+}
+function cargarDropdownPuestos(){
+  const puestos=puestosPorArea[areaActiva]||[];
+  const puestoSel=document.getElementById("filtroPuesto");
+  puestoSel.innerHTML = puestos.map(p=>`<option value="${p}" ${p===puestoActivo?"selected":""}>${p}</option>`).join("");
+  if(!puestos.includes(puestoActivo)) puestoActivo = puestos[0]||"";
+}
+
+// ================== Eventos ==================
+function onAreaChange(){
+  areaActiva = document.getElementById("filtroArea").value;
+  const puestos = puestosPorArea[areaActiva]||[];
+  puestoActivo = puestos[0]||"";
+  cargarDropdownPuestos();
+  renderTabla();
+}
+function onPuestoChange(){ puestoActivo = document.getElementById("filtroPuesto").value; renderTabla(); }
+function filtrarTabla(){ renderTabla(); }
+
+// ================== Render ==================
+function getTextFilters(){
+  const filtroCodigo = (document.getElementById("filtroCodigo")?.value||"").toLowerCase();
+  const filtroDoc    = (document.getElementById("filtroDocumento")?.value||"").toLowerCase();
+  const filtroCap    = (document.getElementById("filtroCapacitador")?.value||"").toLowerCase();
+  return {filtroCodigo,filtroDoc,filtroCap};
+}
+
+function renderTabla(){
+  const {filtroCodigo,filtroDoc,filtroCap} = getTextFilters();
+  const docs = documentosILUO.filter(doc =>
+    doc.area===areaActiva && doc.puesto===puestoActivo &&
+    (!filtroCodigo || (doc.codigo||"").toLowerCase().includes(filtroCodigo)) &&
+    (!filtroDoc    || (doc.documento||"").toLowerCase().includes(filtroDoc)) &&
+    (!filtroCap    || (doc.capacitador||"").toLowerCase().includes(filtroCap))
+  );
+
+  const rows = docs.map(doc=>`
+    <tr data-id="${doc._id}">
+      <td contenteditable="true">${doc.codigo||""}</td>
+      <td contenteditable="true">${doc.revision||""}</td>
+      <td contenteditable="true">${doc.documento||""}</td>
+      <td contenteditable="true">${doc.capacitador||""}</td>
+      <td contenteditable="true">${doc.tipoCategoria||""}</td>
+      <td>${doc.puesto}</td>
+      <td>${doc.area}</td>
+      <td><button class="table-btn" onclick="eliminarDocumentoPorId('${doc._id}')">Eliminar</button></td>
+    </tr>
+  `).join("");
+
+  document.getElementById("contenedorTabla").innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th><th>Revisión</th><th>Documento</th><th>Capacitador</th><th>Tipo de Categoría</th><th>Puesto</th><th>Área</th><th>Eliminar</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ================== CRUD ==================
+async function agregarDocumento(){
+  if(!areaActiva || !puestoActivo){ alert('Primero selecciona área y puesto'); return; }
+  documentosILUO.push({ _id: genId(), codigo:"", documento:"", capacitador:"", revision:"", tipoCategoria:"", puesto:puestoActivo, area:areaActiva });
+  await guardarEnIndexedDB("documentosILUO", documentosILUO);
+  renderTabla();
+}
+
+async function guardarCambios(){
+  const {filtroCodigo,filtroDoc,filtroCap} = getTextFilters();
+  const hasTextFilters = Boolean(filtroCodigo || filtroDoc || filtroCap);
+
+  // Leer SOLO lo visible (tbody) con su _id
+  const updates = new Map();
+  document.querySelectorAll('#contenedorTabla tbody tr').forEach(tr=>{
+    const id = tr.getAttribute('data-id') || genId();
+    const tds = tr.querySelectorAll('td');
+    updates.set(id, {
+      _id: id,
+      codigo:        (tds[0]?.innerText||'').trim(),
+      revision:      (tds[1]?.innerText||'').trim(),
+      documento:     (tds[2]?.innerText||'').trim(),
+      capacitador:   (tds[3]?.innerText||'').trim(),
+      tipoCategoria: (tds[4]?.innerText||'').trim(),
+      puesto: puestoActivo,
+      area:  areaActiva
+    });
+  });
+
+  if(hasTextFilters){
+    // 🔒 Actualización no destructiva: SOLO los que están visibles
+    documentosILUO = documentosILUO.map(doc=>{
+      if(doc.area===areaActiva && doc.puesto===puestoActivo && updates.has(doc._id)){
+        return { ...doc, ...updates.get(doc._id) };
+      }
+      return doc;
+    });
+  } else {
+    // 🧹 Reemplazo total del subconjunto área/puesto (sin filtros de texto)
+    documentosILUO = documentosILUO.filter(doc => !(doc.area===areaActiva && doc.puesto===puestoActivo))
+                                   .concat(Array.from(updates.values()));
+  }
+
+  await guardarEnIndexedDB('documentosILUO', documentosILUO);
+  alert('Cambios guardados correctamente');
+  renderTabla();
+}
+
+async function eliminarDocumentoPorId(id){
+  const pass = prompt('Ingrese contraseña para eliminar:');
+  if(pass !== 'Isovolta2025'){ alert('Contraseña incorrecta'); return; }
+  documentosILUO = documentosILUO.filter(doc => doc._id !== id);
+  await guardarEnIndexedDB('documentosILUO', documentosILUO);
+  renderTabla();
+}
+
+// ================== Pegado tipo Excel ==================
+document.addEventListener('DOMContentLoaded',()=>{
+  document.addEventListener('paste',function(event){
+    const active = document.activeElement;
+    if(!active || active.tagName !== 'TD' || !active.isContentEditable) return;
+    const tabla = active.closest('table'); if(!tabla) return;
+    event.preventDefault();
+    let data=(event.clipboardData||window.clipboardData).getData('text');
+    let rows=data.split('\n').map(r=>r.replace(/\r/g,'').split('\t'));
+    let cell=active; let tr=cell.parentElement;
+    let tdIndex=Array.from(tr.children).indexOf(cell);
+    let trIndex=Array.from(tabla.tBodies[0].rows).indexOf(tr);
+    for(let i=0;i<rows.length;i++){
+      let row=rows[i];
+      let currentTr=tabla.tBodies[0].rows[trIndex+i];
+      if(!currentTr) break;
+      for(let j=0;j<row.length;j++){
+        if(tdIndex+j>4) break; // solo columnas editables
+        let currentTd=currentTr.cells[tdIndex+j];
+        if(currentTd && currentTd.isContentEditable){ currentTd.innerText=row[j]; }
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>

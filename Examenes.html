@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>RQ-0601-FOP Exámenes</title>
+<link rel="icon" type="image/png" href="Isovolta.ico">
+<style>
+  :root{
+    --azul:#004990;
+    --azul-osc:#00386f;
+    --acento:#ffcc00;
+    --texto:#1f2a37;
+    --gris-fondo:#f4f7fb;
+    --gris-borde:#e3e8ef;
+    --fila-zebra:#f2f6fb;
+    --sombra: 0 8px 24px rgba(0,32,91,.08);
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+    background: var(--gris-fondo);
+    color: var(--texto);
+    margin: 0;
+    padding: 0 0 70px 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .encabezado {
+    width: 100%;
+    background: #fff;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    box-shadow: 0 2px 16px rgba(0,32,91,0.06);
+    border-bottom: 3px solid var(--azul);
+  }
+  .logo-isovolta { height: 56px; margin: 10px 24px; }
+
+  .main-container {
+    max-width: 1400px;
+    margin: 28px auto;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: var(--sombra);
+    padding: 20px 22px;
+  }
+
+  h1 {
+    color: var(--azul);
+    text-align: center;
+    font-size: 1.6rem;
+    margin: 0 0 14px 0;
+    font-weight: 700;
+    letter-spacing: .3px;
+  }
+  h1::after{
+    content:"";
+    display:block;
+    width: 120px; height: 4px;
+    background: var(--acento);
+    margin: 8px auto 0; border-radius: 999px;
+  }
+
+  .top-controls{
+    display:grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items:center;
+    margin-bottom: 10px;
+  }
+  @media (max-width: 700px){ .top-controls{ grid-template-columns:1fr; } }
+
+  .btn, .btn-abierto{
+    appearance:none;
+    background: var(--azul);
+    color:#fff; font-weight:600;
+    border:1px solid var(--azul);
+    border-radius:10px; font-size:.95rem;
+    padding:8px 14px;
+    box-shadow: 0 2px 6px rgba(0,32,91,.10);
+    cursor:pointer; transition:.12s;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn:hover, .btn-abierto:hover{ background:var(--azul-osc); border-color:var(--azul-osc); transform:translateY(-1px); }
+
+  .filter-buttons{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+  input[type="text"]{
+    height: 38px; padding:6px 10px;
+    border:1px solid var(--gris-borde); border-radius:10px;
+    background:#ffffff; font-size:.93rem; min-width:180px;
+  }
+  input[type="text"]:focus{ border-color:var(--azul); outline:none; box-shadow:0 0 0 3px rgba(0,73,144,.15); }
+
+  /* ----- Tabla compacta con header fijo ----- */
+  .tabla-wrap{
+    max-height: 62vh;              /* lo que se desplaza */
+    overflow: auto;
+    border: 1px solid var(--gris-borde);
+    border-radius: 12px;
+    box-shadow: 0 1px 6px rgba(0,32,91,.05) inset;
+  }
+
+  table{
+    width: 100%;
+    border-collapse: separate;     /* permite sticky + bordes suaves */
+    border-spacing: 0;
+    table-layout: fixed;           /* controla anchos por columna */
+    font-size: 13px;               /* más compacto */
+  }
+
+  thead th{
+    position: sticky; top: 0; z-index: 2;
+    background: #f1f5f9 !important;
+    color: #0f172a; font-weight: 700;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--gris-borde);
+    white-space: nowrap;
+  }
+  thead th:first-child{ border-top-left-radius: 12px; }
+  thead th:last-child{ border-top-right-radius: 12px; }
+
+  tbody td{
+    padding: 8px 8px;              /* celdas más delgadas */
+    border-top: 1px solid var(--gris-borde);
+    vertical-align: middle;
+    background:#fff;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  tbody tr:nth-child(even) td{ background: var(--fila-zebra); }
+
+ td input[type="text"]{
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12.5px;
+  border: 1px solid #d3dae3;
+  border-radius: 8px;
+  white-space: nowrap;         /* por defecto en una línea */
+  overflow: hidden;
+  text-overflow: ellipsis;     /* puntos suspensivos */
+}
+
+/* cuando el usuario hace foco, que se vea todo y pueda partir líneas */
+td input[type="text"]:focus {
+  white-space: normal;         /* permite varias líneas */
+  word-break: break-all;       /* corta donde sea necesario */
+}
+
+  .btn-abierto{ font-size:.9rem; padding:6px 10px; border-radius:8px; }
+
+  footer{
+    width: 100%; background: var(--azul); color:#fff;
+    text-align:center; padding:9px 8px; position:fixed; left:0; bottom:0;
+    font-size:.95rem; letter-spacing:.3px; z-index:50;
+  }
+
+  /* Anchos por columna (no rompe tu JS) */
+  /*  Código | Documento | Rev | Ver | Ruta | Acceso  = 100% */
+#tablaExamenes col:nth-child(1){ width: 16%; }
+#tablaExamenes col:nth-child(2){ width: 30%; }
+#tablaExamenes col:nth-child(3){ width: 10%; text-align:center; }
+#tablaExamenes col:nth-child(4){ width: 36%; }   /* Ruta más grande */
+#tablaExamenes col:nth-child(5){ width: 8%;  }   /* Botón */
+
+  @media (max-width: 950px){
+  .logo-isovolta{ height:44px; }
+  h1{ font-size:1.3rem; }
+  .tabla-wrap{ max-height: 58vh; }
+
+  /* Más espacio aún para la Ruta en pantallas medianas */
+  #tablaExamenes col:nth-child(1){ width: 18%; }
+  #tablaExamenes col:nth-child(2){ width: 26%; }
+  #tablaExamenes col:nth-child(3){ width: 10%; }
+  #tablaExamenes col:nth-child(4){ width: 40%; } /* Ruta */
+  #tablaExamenes col:nth-child(5){ width: 6%;  } /* Botón */
+}
+</style>
+</head>
+<body>
+<header class="encabezado">
+  <img alt="Isovolta Logo" class="logo-isovolta" src="https://www.isovolta.com/logo_isovolta.png"/>
+</header>
+
+<div class="main-container">
+  <h1>RQ-0601-FOP Exámenes</h1>
+
+  <div class="top-controls">
+    <div>
+      <button class="btn" onclick="guardarDatos()">Guardar Rutas</button>
+    </div>
+    <div class="filter-buttons">
+      <input id="filtroCodigo" oninput="filtrarTabla()" placeholder="Filtrar por Código..." type="text"/>
+      <input id="filtroDocumento" oninput="filtrarTabla()" placeholder="Filtrar por Documento..." type="text"/>
+    </div>
+  </div>
+
+  <!-- WRAPPER CON SCROLL + ENCABEZADO FIJO -->
+  <div class="tabla-wrap">
+    <table id="tablaExamenes">
+      <!-- CONTROL FINO DE ANCHOS SIN ROMPER JS -->
+      <colgroup>
+        <col><col><col><col><col><col>
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Documento</th>
+          <th>Revisión</th>
+          <th>Ruta de Acceso</th>
+          <th>Acceso</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+/* ===== IndexedDB Helper (SIN CAMBIOS) ===== */
+const DB_NAME = 'ILUO_DB';
+const DB_VERSION = 1;
+const STORE_NAME = 'respaldo';
+const RUTAS_KEY = 'rutasExamenesV2';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'clave' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
+async function guardarEnIndexedDB(clave, valor) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.put({ clave, valor });
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e.target.error);
+  });
+}
+async function leerDeIndexedDB(clave) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.get(clave);
+    req.onsuccess = () => resolve(req.result ? req.result.valor : null);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+/* ===== Lógica principal (SIN CAMBIOS) ===== */
+let examenes = [];
+let rutas = {};
+
+async function renderizarTabla() {
+  examenes = await leerDeIndexedDB("documentosILUO") || [];
+  rutas = await leerDeIndexedDB(RUTAS_KEY) || {};
+
+  const unicosPorCodigo = {};
+  examenes.forEach(doc => {
+    if (!unicosPorCodigo[doc.codigo]) {
+      unicosPorCodigo[doc.codigo] = doc;
+    }
+  });
+  const docsUnicos = Object.values(unicosPorCodigo);
+
+  const tbody = document.querySelector("#tablaExamenes tbody");
+  tbody.innerHTML = "";
+
+  docsUnicos.forEach((doc, index) => {
+    const ruta = rutas[doc.codigo] || "";
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td title="${doc.codigo || ""}">${doc.codigo || ""}</td>
+      <td title="${doc.documento || ""}">${doc.documento || ""}</td>
+      <td>${doc.revision || ""}</td>
+      <td><input type="text" id="ruta-${index}" value="${ruta}"></td>
+      <td><button class="btn-abierto" onclick="abrirDocumento(${index})">Abrir</button></td>
+    `;
+    tbody.appendChild(fila);
+  });
+}
+
+function abrirDocumento(index) {
+  const input = document.getElementById("ruta-" + index);
+  if (input && input.value.trim()) {
+    window.open(input.value.trim(), '_blank');
+  } else {
+    alert("Ruta no especificada.");
+  }
+}
+
+async function guardarDatos() {
+  const filas = document.querySelectorAll("#tablaExamenes tbody tr");
+  let nuevasRutas = {};
+  filas.forEach((fila, index) => {
+    const codigo = fila.cells[0].textContent.trim();
+    const ruta = fila.querySelector(`#ruta-${index}`).value.trim();
+    nuevasRutas[codigo] = ruta;
+  });
+  await guardarEnIndexedDB(RUTAS_KEY, nuevasRutas);
+  alert("Rutas guardadas correctamente.");
+}
+
+function filtrarTabla() {
+  const codigo = document.getElementById("filtroCodigo").value.toLowerCase();
+  const doc = document.getElementById("filtroDocumento").value.toLowerCase();
+  const filas = document.querySelectorAll("#tablaExamenes tbody tr");
+  filas.forEach(fila => {
+    const cellCodigo = fila.cells[0].textContent.toLowerCase();
+    const cellDoc = fila.cells[1].textContent.toLowerCase();
+    fila.style.display = (cellCodigo.includes(codigo)) && (cellDoc.includes(doc)) ? "" : "none";
+  });
+}
+renderizarTabla();
+</script>
+
+<footer>
+  Herramienta diseñada por el departamento de Producción & Mejora Continua
+</footer>
+</body>
+</html>

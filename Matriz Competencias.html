@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>RQ-1302-FOP Matriz de competencias</title>
+<link rel="icon" type="image/png" href="Isovolta.ico">
+<style>
+  :root{
+    --azul:#004990;
+    --azul-2:#0a63c6;
+    --bg:#f4f7fb;
+    --card:#ffffff;
+    --ink:#0f172a;
+    --muted:#5b6b7a;
+    --ok:#2d6a4f;
+    --warn:#a35d00;
+    --err:#b91c1c;
+    --shadow:0 10px 25px rgba(2,18,36,.08);
+    --shadow-h:0 14px 30px rgba(2,18,36,.12);
+    --radius:14px;
+    --radius-sm:10px;
+    --grid-gap:16px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    margin:0; padding:24px;
+  }
+
+  h1{
+    text-align:center; color:var(--azul);
+    margin:0 0 14px 0;
+    font-weight:800; letter-spacing:.2px;
+  }
+
+  .leyenda{
+    background:var(--card);
+    padding:12px 20px; border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    max-width:860px; margin:0 auto 16px;
+  }
+  .leyenda h3{color:var(--azul); margin:0 0 8px 0}
+  .leyenda ul{margin:0; padding-left:0; list-style:none; font-size:14px; color:var(--muted)}
+
+  /* Barra de filtros sticky */
+  .filter-wrap{
+    position:sticky; top:8px; z-index:5;
+    background:linear-gradient(var(--bg), rgba(244,247,251,.6));
+    padding:10px 8px; backdrop-filter:saturate(120%) blur(2px);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    max-width:1000px; margin:0 auto 18px;
+  }
+  #filtros{
+    display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+  }
+  #filtros button{
+    border:none; cursor:pointer;
+    padding:10px 16px; border-radius:999px;
+    background:var(--azul); color:#fff; font-weight:700; letter-spacing:.2px;
+    box-shadow:0 4px 12px rgba(0,73,144,.22);
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease, opacity .2s ease;
+    outline: none;
+  }
+  #filtros button:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,73,144,.28); background:var(--azul-2); }
+  #filtros button:active{ transform:translateY(0); }
+  #filtros button:focus-visible{ box-shadow:0 0 0 3px rgba(0,73,144,.35); }
+
+  /* Botón activo */
+  #filtros button.active{
+    background:#0b7fff;
+    box-shadow:0 8px 18px rgba(11,127,255,.28), inset 0 -2px 0 rgba(0,0,0,.07);
+  }
+
+  /* Contenedor de tarjetas */
+  .container{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+    gap:var(--grid-gap);
+    align-items:start;
+    max-width:1200px; margin:0 auto;
+  }
+
+  /* Tarjetas */
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px;
+    transform:translateY(8px);
+    opacity:0;
+    animation:cardIn .45s ease forwards;
+  }
+  .card:hover{ box-shadow:var(--shadow-h); transform:translateY(-1px); transition:transform .18s ease, box-shadow .18s ease; }
+
+  .card h3{
+    margin:0 0 10px 0; color:var(--azul); font-size:18px; line-height:1.2;
+  }
+  .meta{ margin:0 0 12px 0; color:var(--muted); font-size:13px; display:grid; gap:4px; }
+  .meta strong{ color:#1e293b; }
+
+  /* Barra de progreso */
+  .progress{
+    margin:10px 0 12px; background:#ecf1f9; height:10px; border-radius:999px; overflow:hidden; position:relative;
+  }
+  .progress > .bar{
+    height:100%; width:0%;
+    background:linear-gradient(90deg, #22c55e, #0ea5e9);
+    transition:width .6s cubic-bezier(.22,.9,.3,1);
+  }
+  .progress .pct{
+    position:absolute; right:8px; top:-24px; font-size:12px; color:#0b3a6a; font-weight:700;
+  }
+
+  /* Chips de personas */
+  .persona{
+    display:flex; align-items:center; justify-content:space-between;
+    background:#eef2f7; color:#0b1f36;
+    padding:8px 12px; margin:6px 0; border-radius:var(--radius-sm);
+    font-weight:600; font-size:14px; border-left:5px solid; box-shadow:0 1px 4px rgba(0,0,0,.06);
+  }
+  .persona.prom-rojo{ background:#ffe9e9; color:#7a1212; border-color:#e53935; }
+  .persona.prom-naranja{ background:#fff1e3; color:#7b4000; border-color:#fb8c00; }
+  .persona.prom-amarillo{ background:#fff9d9; color:#6b5a00; border-color:#f2c200; }
+  .persona.prom-azul{ background:#e7f2ff; color:#003a7a; border-color:#1976d2; }
+  .persona.prom-verde{ background:#e7fbef; color:#1f5a3e; border-color:#22c55e; }
+
+  /* Bordes según promedio */
+  .card.rojo{ border-left:8px solid #e53935; }
+  .card.naranja{ border-left:8px solid #fb8c00; }
+  .card.amarillo{ border-left:8px solid #f2c200; }
+  .card.verde{ border-left:8px solid #22c55e; }
+
+  /* Animación entrada */
+  @keyframes cardIn{
+    from{ transform:translateY(8px); opacity:0;}
+    to{ transform:translateY(0); opacity:1;}
+  }
+
+  /* Botón actualizar */
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--azul); color:#fff; border:none; padding:10px 16px;
+    border-radius:10px; cursor:pointer; font-weight:800;
+    box-shadow:0 6px 16px rgba(0,73,144,.22);
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease;
+  }
+  .btn:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,73,144,.28); background:var(--azul-2); }
+  .btn:active{ transform:translateY(0); }
+</style>
+</head>
+<body>
+  <h1>RQ-1302-FOP Matriz de competencias</h1>
+
+  <div class="leyenda">
+    <h3>Leyenda de interpretación ILUO:</h3>
+    <ul>
+      <li><span style="color:#b91c1c;font-weight:800;">🔴 0% - 69% (N/A)</span> → No puede operar el equipo.</li>
+      <li><span style="color:#a35d00;font-weight:800;">🟠 70% - 79% (I)</span> → Puede operar bajo supervisión.</li>
+      <li><span style="color:goldenrod;font-weight:800;">🟡 80% - 89% (L)</span> → Opera con mínima intervención.</li>
+      <li><span style="color:#0a63c6;font-weight:800;">🔵 90% - 94% (U)</span> → Apto para operar de forma autónoma.</li>
+      <li><span style="color:#22c55e;font-weight:800;">🟢 95% - 100% (O)</span> → Apto para operar de forma autónoma y puede enseñar.</li>
+    </ul>
+  </div>
+
+  <div style="text-align:center; margin:14px 0 8px;">
+    <button class="btn" onclick="renderMatriz()">
+      🔄 Actualizar
+    </button>
+  </div>
+
+  <div class="filter-wrap">
+    <div id="filtros" role="tablist" aria-label="Filtro por área">
+      <!-- Botones se pintan dinámicamente -->
+    </div>
+  </div>
+
+  <div class="container" id="matrizOperaciones" aria-live="polite"></div>
+
+<script>
+/* ================== IndexedDB Helper ================== */
+const DB_NAME = 'ILUO_DB';
+const DB_VERSION = 1;
+const STORE_NAME = 'respaldo';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'clave' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror  = (e) => reject(e.target.error);
+  });
+}
+
+async function guardarEnIndexedDB(clave, valor) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).put({ clave, valor });
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function leerDeIndexedDB(clave) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).get(clave);
+    req.onsuccess = () => resolve(req.result ? req.result.valor : null);
+    req.onerror   = (e) => reject(e.target.error);
+  });
+}
+
+/* ============ Migrar de localStorage (opcional) ============ */
+async function migrarLocalStorageAIndexedDB() {
+  const claves = ["matrizILUO", "documentosILUO"];
+  for (let clave of claves) {
+    const val = localStorage.getItem(clave);
+    if (val && !(await leerDeIndexedDB(clave))) {
+      await guardarEnIndexedDB(clave, JSON.parse(val));
+      // localStorage.removeItem(clave);
+    }
+  }
+}
+
+/* ================== Estado UI ================== */
+let areaSeleccionada = "Todas";
+
+/* ============ Utilidades ============ */
+const norm = s => (s || "").toString().trim().toLowerCase();
+
+function claseTarjetaPorProm(p){
+  if (p >= 90) return "verde";
+  if (p >= 80) return "amarillo";
+  if (p >= 70) return "naranja";
+  return "rojo";
+}
+
+function claseChipPorCal(c){
+  if (c >= 95) return "prom-verde";
+  if (c >= 90) return "prom-azul";
+  if (c >= 80) return "prom-amarillo";
+  if (c >= 70) return "prom-naranja";
+  return "prom-rojo";
+}
+
+/* ============ Render principal (con deduplicación por Nombre dentro de cada Área) ============ */
+async function renderMatriz() {
+  await migrarLocalStorageAIndexedDB();
+
+  const operadores = await leerDeIndexedDB("matrizILUO")     || [];
+  const documentos = await leerDeIndexedDB("documentosILUO") || [];
+  const contenedor = document.getElementById("matrizOperaciones");
+  contenedor.innerHTML = "";
+
+  // Solo categoría Eficiencia como en tu lógica original
+  const docsEficiencia = documentos.filter(d => d.tipoCategoria === "Eficiencia");
+
+  // ---- Filtros (con activo) ----
+  const areasUnicas = [...new Set(docsEficiencia.map(d => d.area))].filter(Boolean).sort();
+  const filtrosDiv = document.getElementById("filtros");
+  filtrosDiv.innerHTML = "";
+
+  const btnTodas = document.createElement("button");
+  btnTodas.textContent = "Todas";
+  btnTodas.className = areaSeleccionada === "Todas" ? "active" : "";
+  btnTodas.role = "tab";
+  btnTodas.ariaSelected = (areaSeleccionada === "Todas") ? "true" : "false";
+  btnTodas.onclick = () => filtrarArea("Todas");
+  filtrosDiv.appendChild(btnTodas);
+
+  areasUnicas.forEach(area => {
+    const btn = document.createElement("button");
+    btn.textContent = area;
+    btn.className = (areaSeleccionada === area) ? "active" : "";
+    btn.role = "tab";
+    btn.ariaSelected = (areaSeleccionada === area) ? "true" : "false";
+    btn.onclick = () => filtrarArea(area);
+    filtrosDiv.appendChild(btn);
+  });
+
+  // ---- Filtrado por área ----
+  const docsFiltrados = docsEficiencia.filter(doc => areaSeleccionada === "Todas" || doc.area === areaSeleccionada);
+
+  // ---- Deduplicación por (Área + Nombre normalizado) ----
+  const grupos = new Map();
+  for (const doc of docsFiltrados) {
+    const key = (doc.area || "Todas") + "||" + norm(doc.documento);
+    if (!grupos.has(key)) {
+      grupos.set(key, { documento: doc.documento, area: doc.area, codigos: new Set() });
+    }
+    if (doc.codigo) grupos.get(key).codigos.add(doc.codigo);
+  }
+
+  // ---- Render tarjetas ----
+  let idx = 0;
+  for (const g of grupos.values()) {
+    const codigos = Array.from(g.codigos);
+
+    // Promedio por persona usando su mejor cal entre los códigos del grupo
+    let suma = 0, cuenta = 0;
+    const personasConMejor = [];
+    for (const op of operadores) {
+      const docsOp = (op.documentacion || []);
+      let mejor = null;
+      for (const c of codigos) {
+        const d = docsOp.find(x => x.codigo === c);
+        if (!d) continue;
+        const val = parseFloat(d.calificacion);
+        if (!isNaN(val)) mejor = (mejor === null || val > mejor) ? val : mejor;
+      }
+      if (mejor !== null) {
+        suma += mejor; cuenta++;
+        personasConMejor.push({ nombre: op.nombre, cal: mejor });
+      }
+    }
+
+    const promedio = cuenta ? (suma / cuenta) : 0;
+    const tarjeta = document.createElement("div");
+    tarjeta.className = `card ${claseTarjetaPorProm(promedio)}`;
+    tarjeta.style.animationDelay = (idx * 0.03) + "s"; // pequeño stagger
+    idx++;
+
+    const codigosTxt = codigos.length ? codigos.join(", ") : "—";
+    tarjeta.innerHTML = `
+      <h3>${g.documento}</h3>
+      <div class="meta">
+        <div><strong>Códigos:</strong> ${codigosTxt}</div>
+        <div><strong>Área:</strong> ${g.area || "—"}</div>
+      </div>
+      <div class="progress" aria-label="Porcentaje promedio">
+        <div class="bar" style="width:${promedio.toFixed(0)}%"></div>
+        <div class="pct">${promedio.toFixed(1)}%</div>
+      </div>
+    `;
+
+    // Personas (una por persona, mejor calificación)
+    let hay = false;
+    personasConMejor
+      .sort((a,b)=>b.cal-a.cal) // opcional: orden descendente
+      .forEach(p => {
+        hay = true;
+        const chip = document.createElement("div");
+        chip.className = `persona ${claseChipPorCal(p.cal)}`;
+        chip.textContent = `${p.nombre} — ${p.cal}`;
+        tarjeta.appendChild(chip);
+      });
+
+    if (hay) contenedor.appendChild(tarjeta);
+  }
+}
+
+/* ============ Acciones ============ */
+function filtrarArea(area) {
+  areaSeleccionada = area;
+  renderMatriz();
+}
+
+/* ============ Init ============ */
+renderMatriz();
+</script>
+</body>
+</html>
