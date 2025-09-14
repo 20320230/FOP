@@ -6,7 +6,6 @@ const FILES_TO_CACHE = [
     'isovolta.ico',
     'manifest.json',
     'service-worker.js',
-    'style.css'
 ];
 
 // Rutas de archivos dentro de las carpetas
@@ -28,6 +27,7 @@ const ADDITIONAL_FILES = [
 'Matriz Competencias.html',    
 'Examenes.html',  
 'isovolta.ico',  
+'FORMAR AL PERSONAL.html',  
 
     // Agrega más archivos aquí según la estructura real de tus carpetas
 ];
