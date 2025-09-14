@@ -18,16 +18,16 @@ const FOLDER_PATHS = [
 // Aquí es donde debes agregar manualmente los archivos dentro de cada carpeta si tienes nombres específicos
 const ADDITIONAL_FILES = [
     // Ejemplo de cómo agregar archivos dentro de una carpeta
-'FOP/Gantt.html',   
-'FOP/Lista_Asistencia.html',     
-'FOP/Matriz de capacitacion.html', 
-'FOP/Personas_iluo.html', 
-'FOP/Pendientes_reentrenar.html', 
-'FOP/Calificaciones.html',  
-'FOP/Matriz_iluo.html', 
-'FOP/Matriz Competencias.html',    
-'FOP/Examenes.html',  
-'FOP/isovolta.ico',  
+'Gantt.html',   
+'Lista_Asistencia.html',     
+'Matriz de capacitacion.html', 
+'Personas_iluo.html', 
+'Pendientes_reentrenar.html', 
+'Calificaciones.html',  
+'Matriz_iluo.html', 
+'Matriz Competencias.html',    
+'Examenes.html',  
+'isovolta.ico',  
 
     // Agrega más archivos aquí según la estructura real de tus carpetas
 ];
