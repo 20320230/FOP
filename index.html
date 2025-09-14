@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FOP Isovolta</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#004990" />
+  <link rel="icon" href="isovolta.ico" />
+  <style>
+    html,body{height:100%}body{margin:0;display:grid;place-items:center;background:#f4f7fb;
+    font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;color:#0f172a}
+    .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center}
+    .muted{opacity:.7}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>FOP Isovolta</h1>
+    <p class="muted">Cargando aplicación…</p>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('service-worker.js'); }
+    // redirige a tu pantalla principal
+    window.location.replace('FORMAR AL PERSONAL.html');
+  </script>
+</body>
+</html>
