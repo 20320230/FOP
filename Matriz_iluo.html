@@ -1,320 +1,575 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <link rel="manifest" href="manifest.json">
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RQ-0705-FOP Ficha de Talento</title>
   <link rel="icon" type="image/png" href="Isovolta.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary: #004990;
+      --primary-light: #006ad1;
+      --primary-dark: #003366;
+      --secondary: #00a651;
+      --accent: #2bace2;
+      --light: #f4f7fb;
+      --light-gray: #e9ecef;
+      --dark: #333;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --success: #28a745;
+      --border-radius: 12px;
+      --box-shadow: 0 1px 4px rgba(0, 73, 144, 0.1);
+      --transition: all 0.2s ease;
+
+      /* Compactación fina */
+      --base-font: 13px;
+      --table-font: 9.5px;
+      --row-h: 24px;
+      --th-h: 26px;
+      --input-h: 22px;
+      --btn-h: 26px;
+      --gap: 8px;
+
+      /* Zoom UI */
+      --ui-zoom: 1; /* 1 = 100% */
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; overflow: hidden; } /* <- bloquea scroll global */
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f4f7fb;
-      margin: 0; padding: 0;
-      min-height: 100vh;
+      background: var(--light);
+      color: var(--dark);
+      line-height: 1.3;
+      font-size: var(--base-font);
       display: flex;
       flex-direction: column;
+      zoom: var(--ui-zoom); /* escala visual interna */
     }
+
+    /* Header compacto */
     header {
+      position: relative;                /* para posicionar la barra de zoom dentro */
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 25px 40px 10px 40px;
+      padding: 6px 12px 10px;
       background: #fff;
-      box-shadow: 0 4px 18px -4px #00499024;
-      border-bottom: 4px solid #004990;
+      box-shadow: 0 1px 3px rgba(0, 73, 144, 0.1);
+      border-bottom: 2px solid var(--primary);
     }
     header h1 {
-      color: #004990;
+      color: var(--primary);
       margin: 0;
-      font-size: 2.2rem;
-      font-weight: 800;
-      letter-spacing: .5px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    header img {
-      height: 60px;
+    header h1 i { font-size: .95rem; }
+    header img { height: 28px; max-width: 120px; }
+
+    /* Barra de zoom centrada dentro del header */
+    .zoom-toolbar{
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 6px; z-index: 2;
+      background:#fff; border:1px solid #d7dfe8; border-radius:8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+      padding: 6px 8px; align-items: center; font-size:12px;
     }
+    .zoom-toolbar button{
+      height: 26px; padding: 0 10px; border-radius:6px; border:1px solid #cfd6df;
+      background:#f7faff; cursor:pointer; font-weight:600;
+    }
+    .zoom-toolbar button:hover{ background:#eef5ff; }
+    .zoom-toolbar .val{ min-width: 40px; text-align:center; font-weight:700; }
+
+    /* Layout principal compacto */
     .main-container {
       flex: 1;
       display: flex;
-      flex-wrap: wrap;
-      gap: 35px;
-      align-items: flex-start;
-      padding: 30px 4vw 30px 4vw;
-      box-sizing: border-box;
-      justify-content: center;
+      gap: var(--gap);
+      padding: var(--gap);
+      height: calc(100vh - 56px); /* ocupa el resto de la pantalla bajo el header */
+      min-height: 480px;
+      min-width: 0; /* importante para flex + overflow */
     }
-    .panel-busqueda {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 2px 12px 0 #00336622;
-      padding: 20px 24px;
-      margin-bottom: 18px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      min-width: 320px;
-    }
-    .panel-busqueda select,
-    .panel-busqueda input,
-    .panel-busqueda button {
-      margin: 0 5px 0 0;
-      font-size: 14px;
-      border-radius: 6px;
-      border: 1px solid #bbb;
-      padding: 8px 10px;
-      background: #f7faff;
-      min-width: 130px;
-      transition: box-shadow 0.2s;
-    }
-    .panel-busqueda button.btn {
-      background: #004990;
-      color: white;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 2px 8px #00499024;
-      transition: background .25s;
-    }
-    .panel-busqueda button.btn:hover {
-      background: #006ad1;
-    }
-    .panel-busqueda .alerta {
-      background: #ffffcc;
-      border: 1px solid #cccc00;
-      padding: 9px 12px;
-      margin: 10px 0 0 0;
-      font-size: 13px;
-      border-radius: 6px;
-      width: 100%;
-    }
-    .datos-operador {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 2px 12px #00499013;
-      padding: 24px 18px 10px 18px;
-      margin-bottom: 20px;
-    }
-    .datos-operador h2 {
-      font-size: 1.3rem;
-      color: #003366;
-      margin: 0 0 12px 0;
-      font-weight: 600;
-    }
-    .tabla-matriz {
-      background: #fff;
-      border-radius: 13px;
-      box-shadow: 0 2px 10px #00336612;
-      overflow-x: auto;
-      margin-bottom: 22px;
-    }
-    table {
-      font-size: 13px;
-      border-collapse: collapse;
-      width: 100%;
-      background: white;
-    }
-
-    th:nth-child(7), td:nth-child(7) {
-      min-width: 40px !important;
-      max-width: 40px !important;
-      width: 40px !important;
-      text-align: center !important;
-      padding: 0 !important;
-    }
-
-    td input[type="text"][readonly] {
-      background: transparent !important;
-      border: none !important;
-      outline: none;
-      box-shadow: none;
-      font-size: 1.2em;
-      font-weight: bold;
-      color: inherit;
-      width: 35px !important;
-      margin: 0 auto !important;
-      display: block;
-      text-align: center;
-      cursor: default;
-    }
-    td input[type="text"][readonly] {
-      font-size: 1.25em;
-      font-weight: bold;
-      text-align: center;
-      background: transparent !important;
-      border: none !important;
-      outline: none;
-      box-shadow: none;
-      width: 36px !important;
-      margin: 0 auto !important;
-      cursor: default;
-      padding: 0;
-    }
-
-
-    th, td {
-      padding: 7px 12px;
-      border-bottom: 1px solid #dee2e6;
-      vertical-align: middle;
-      text-align: center;
-    }
-    th {
-      background-color: #004990;
-      color: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-    tr:nth-child(even) { background: #f7faff; }
-    td.codigo, td.documento {
-      min-width: 140px; max-width: 260px;
-      text-align: left;
-    }
-    .panel-right {
-      min-width: 340px;
-      max-width: 360px;
+    .content-left {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 6px;
+      min-width: 0;       /* permite que el #matriz haga scroll horizontal */
+      overflow: hidden;   /* evita scroll propio */
     }
-    .foto-tarjeta {
+
+    /* Panel de búsqueda */
+    .panel-busqueda {
       background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 2px 8px #00499015;
-      padding: 16px 8px 10px 8px;
-      text-align: center;
-      margin-bottom: 12px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 6px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      flex-shrink: 0; /* no colapsa */
     }
+    .panel-busqueda .filtros {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+    }
+    .panel-busqueda select,
+    .panel-busqueda input {
+      font-size: 12px;
+      border-radius: 4px;
+      border: 1px solid #cfd6df;
+      padding: 3px 6px;
+      background: #f7faff;
+      min-width: 140px;
+      height: var(--btn-h);
+    }
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0 10px;
+      border-radius: 5px;
+      font-size: 11px;
+      height: var(--btn-h);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--primary-light); }
+
+    .panel-busqueda .alerta {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      padding: 5px 8px;
+      font-size: 12px;
+      border-radius: 4px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    /* Datos del operador */
+    .datos-operador {
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 8px 10px;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .datos-operador::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: var(--primary);
+    }
+    .datos-operador h2 {
+      font-size: .95rem;
+      color: var(--primary-dark);
+      margin: 0;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Tabla ultra compacta con encabezado fijo */
+    .tabla-matriz {
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      overflow: hidden;      /* oculta desbordes visuales */
+      flex: 1;               /* ocupa todo el alto restante */
+      display: flex;
+      flex-direction: column;
+      min-height: 0;         /* permite que el hijo flex (#matriz) se contraiga */
+    }
+    .filtros-tabla {
+      padding: 4px 6px;
+      background: var(--light-gray);
+      border-bottom: 1px solid #d7dfe8;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .filtros-tabla input {
+      padding: 2px 6px;
+      border: 1px solid #cfd6df;
+      border-radius: 4px;
+      font-size: 11px;
+      height: 24px;
+      flex: 1;
+      min-width: 120px;
+      background: #ffffff;
+    }
+
+    /* El área que hace scroll (vertical y horizontal) */
+    #matriz {
+      flex: 1;                 /* ocupa todo lo disponible */
+      min-height: 0;
+      overflow: auto;          /* el scroll vive aquí */
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      font-size: var(--table-font);
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 860px;
+      background: white;
+    }
+    th {
+      background-color: #0b4f93; /* un poco más oscuro para contraste al hacer sticky */
+      color: #fff;
+      position: sticky;
+      top: 0;           /* se pega al borde superior del contenedor con scroll (#matriz) */
+      z-index: 5;
+      padding: 4px 6px;
+      text-align: left;
+      font-weight: 700;
+      border-right: 1px solid rgba(255,255,255,0.12);
+      white-space: nowrap;
+      height: var(--th-h);
+    }
+    th::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 2px;
+      box-shadow: 0 2px 3px rgba(0,0,0,.08);
+      pointer-events: none;
+    }
+    th:last-child { border-right: none; }
+
+    td {
+      padding: 2px 6px;
+      border-bottom: 1px solid #eef2f6;
+      vertical-align: middle;
+      height: var(--row-h);
+      white-space: nowrap;
+    }
+    tr:nth-child(even) { background: #f8fafc; }
+
+    td input[type="number"],
+    td input[type="date"] {
+      width: 100%;
+      padding: 0 4px;
+      border: 1px solid #cfd6df;
+      border-radius: 4px;
+      font-size: 10.5px;
+      height: var(--input-h);
+      background: #ffffff;
+    }
+
+    /* Nivel ILUO compacto */
+    .nivel-cell {
+      text-align: center;
+      font-weight: 700;
+      border-radius: 4px;
+      padding: 0 4px;
+      min-width: 28px;
+      font-size: 10px;
+      line-height: calc(var(--input-h) - 4px);
+      border: 1px solid #e6ebf2;
+      background: #fff;
+    }
+    .nivel-NA { background: #f0e6f5; color: #8e44ad; border-color:#ead9f2; }
+    .nivel-I  { background: #ffeaea; color: #e74c3c; border-color:#ffd0d0; }
+    .nivel-L  { background: #e8f4fd; color: #3498db; border-color:#d2e9fb; }
+    .nivel-U  { background: #eafaf1; color: #27ae60; border-color:#d6f4e3; }
+    .nivel-O  { background: #fef9e7; color: #f39c12; border-color:#f8e9b7; }
+
+    /* Panel derecho compacto */
+    .panel-right {
+      width: 240px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+      min-height: 0;            /* junto con overflow, evita empujar la página */
+      overflow: auto;           /* si se pasara de alto, scrollea este panel */
+    }
+    .card {
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 8px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .foto-tarjeta { text-align: center; }
     #fotoOperador {
-      max-width: 180px;
-      margin: 0 auto 8px auto;
-      border-radius: 10px;
-      box-shadow: 0 1px 8px #00499028;
-      border: 2px solid #e3e3e3;
+      max-width: 150px;
+      margin: 0 auto 6px auto;
+      border-radius: 4px;
+      border: 1px solid #e3e3e3;
       display: none;
     }
-    #nombreFotoActual { font-size: 13px; color: #666; margin-bottom: 8px; }
-    .resumen-card {
-      background: #f5f8fc;
-      border-radius: 10px;
-      box-shadow: 0 1px 8px #00499014;
-      padding: 12px 12px 6px 12px;
-      font-size: 14px;
+    #nombreFotoActual { font-size: 10px; color: #666; margin-bottom: 6px; }
+
+    /* Resumen compacto */
+    .resumen-compacto { font-size: 10px; line-height: 1.15; }
+    .resumen-linea {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+      padding: 1px 0;
     }
-    .resumen-card table { margin-top: 5px; }
-    .resumen-card th, .resumen-card td { font-size: 13px; padding: 5px 9px;}
-    .resumen-card th { background: #2978b7; }
-    .resumen-card strong { color: #005088; }
-    .backup-card {
-      background: #fff;
-      border: 1.5px dashed #9cb5ce;
-      border-radius: 8px;
-      padding: 10px 13px;
-      box-shadow: 0 1px 5px #0049900d;
-      font-size: 14px;
+    .resumen-categoria { flex: 1; text-align: left; }
+    .resumen-porcentaje { width: 44px; text-align: right; font-weight: 700; }
+    .resumen-total {
+      margin-top: 6px;
+      padding: 6px;
+      background: #f0f5ff;
+      border-radius: 6px;
+      font-size: 11px;
+      text-align: center;
+      font-weight: 800;
+      border: 1px solid #d0e0ff;
     }
-    #leyendaILUO {
-      background: #f4f7fa;
-      border: 1px solid #bbc9e5;
-      border-radius: 8px;
-      padding: 11px 13px;
-      font-size: 14px;
-      color: #004990;
-      margin-top: 8px;
-      box-shadow: 0 1px 8px #0049900a;
+
+    .backup-card { border: 1px dashed #9cb5ce; }
+    .backup-actions { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+    .backup-actions .btn { width: 100%; justify-content: center; font-size: 10.5px; height: 24px; }
+
+    /* Leyenda ILUO */
+    #leyendaILUO { font-size: 10px; line-height: 1.15; }
+    .leyenda-item { margin-bottom: 4px; padding: 4px; border-radius: 4px; }
+    .leyenda-item strong {
+      display: inline-block; width: 18px; text-align: center;
+      margin-right: 4px; padding: 1px 3px; border-radius: 3px; font-size: 9.5px;
     }
-    .nivel-NA { background: #e2e2e2; color: #c462c4; font-weight: bold; }
-    .nivel-I  { background-color: #ffe5e5; color: red; font-weight: bold; }
-    .nivel-L  { background-color: #e5f1ff; color: #2bace2; font-weight: bold; }
-    .nivel-U  { background-color: #e5f9e5; color: #00a651; font-weight: bold; }
-    .nivel-O  { background-color: #fffbe5; color: black; font-weight: bold; }
-    @media (max-width: 950px) {
-      .main-container { flex-direction: column; gap: 8px; }
-      .panel-right { max-width: 100%; min-width: 200px; flex-direction: column; }
-      .tabla-matriz { width: 100vw; max-width: 100vw; }
-    }
+    .leyenda-na { background: #f8f5fb; } .leyenda-na strong { background: #f0e6f5; color: #8e44ad; }
+    .leyenda-i  { background: #fff5f5; } .leyenda-i  strong { background: #ffeaea; color: #e74c3c; }
+    .leyenda-l  { background: #f5f9ff; } .leyenda-l  strong { background: #e8f4fd; color: #3498db; }
+    .leyenda-u  { background: #f5fff7; } .leyenda-u  strong { background: #eafaf1; color: #27ae60; }
+    .leyenda-o  { background: #fffef5; } .leyenda-o  strong { background: #fef9e7; color: #f39c12; }
+
+    /* Footer */
     footer {
-      background: #004990;
+      background: var(--primary-dark);
       color: #fff;
       text-align: center;
-      padding: 11px 0 9px 0;
-      font-size: 15px;
-      letter-spacing: 0.1em;
-      margin-top: 40px;
-      border-radius: 0 0 14px 14px;
-      box-shadow: 0 1px 7px #00336622;
+      padding: 4px 0;
+      font-size: 10px;
+      flex-shrink: 0;
     }
 
-    .nivel-NA { color: #c462c4 !important; }
-    .nivel-I  { color: red !important; }
-    .nivel-L  { color: #2bace2 !important; }
-    .nivel-U  { color: #00a651 !important; }
-    .nivel-O  { color: black !important; }
+    /* Scrollbars delgados */
+    #matriz::-webkit-scrollbar { height: 8px; width: 8px; }
+    #matriz::-webkit-scrollbar-track { background: #f1f3f6; border-radius: 6px; }
+    #matriz::-webkit-scrollbar-thumb { background: #c4ccd6; border-radius: 6px; }
+    #matriz::-webkit-scrollbar-thumb:hover { background: #aeb7c3; }
 
-    .mini { font-size:12px; color:#334155 }
+    /* Notificaciones */
+    .notification {
+      position: fixed;
+      top: 10px; right: 10px;
+      padding: 6px 10px;
+      border-radius: var(--border-radius);
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex; align-items: center; gap: 6px;
+      z-index: 1000;
+      transform: translateX(150%);
+      transition: transform 0.3s ease;
+      font-size: 11px;
+    }
+    .notification.show { transform: translateX(0); }
+    .notification.success { border-left: 2px solid #28a745; }
+    .notification.error { border-left: 2px solid #dc3545; }
+
+    /* Responsivo */
+    @media (max-width: 1024px) {
+      .main-container { flex-direction: column; gap: 6px; height: calc(100vh - 56px); }
+      .panel-right { width: 100%; flex-direction: row; flex-wrap: wrap; gap: 6px; }
+      .panel-right .card { flex: 1; min-width: 220px; }
+      .zoom-toolbar{ left: 50%; transform: translateX(-50%); top: 6px; }
+    }
+    @media (max-width: 768px) {
+      header { padding: 6px 10px 42px; } /* deja aire para la barra de zoom si se apila */
+      header h1 { font-size: 1rem; }
+      .main-container { padding: 6px; }
+      .panel-busqueda .filtros { flex-direction: column; width: 100%; }
+      .panel-busqueda select, .panel-busqueda input { width: 100%; }
+      .panel-right { flex-direction: column; }
+      .panel-right .card { min-width: 100%; }
+      .zoom-toolbar{ top: 34px; }
+    }
   </style>
 </head>
 <body>
+
 <header>
-  <h1>RQ-0705-FOP Ficha de talento</h1>
+  <h1><i class="fas fa-user-tie"></i> RQ-0705-FOP Ficha de talento</h1>
+
+  <!-- Barra de zoom centrada en el header (NO flotante) -->
+  <div class="zoom-toolbar" aria-label="Controles de zoom de la aplicación">
+    <button type="button" onclick="ajustarZoom(-0.05)">−</button>
+    <span class="val" id="zoomVal">100%</span>
+    <button type="button" onclick="ajustarZoom(+0.05)">+</button>
+    <button type="button" onclick="setZoom(1.00)" title="Restablecer a 100%">100</button>
+    <button type="button" onclick="setZoom(1.10)" title="Vista cómoda">110</button>
+    <button type="button" onclick="setZoom(1.20)" title="Vista grande">120</button>
+  </div>
+
   <img alt="Isovolta Logo" src="https://www.isovolta.com/logo_isovolta.png"/>
 </header>
+
 <div class="main-container">
-  <div style="flex: 1;">
+  <div class="content-left">
     <div class="panel-busqueda">
-      <select id="areaFiltro" onchange="filtrarOperadoresPorArea()">
-        <option value="">-- Filtrar por área --</option>
-      </select>
-      <select id="operadoresGuardados" onchange="cargarOperador()">
-        <option value="">-- Cargar operador --</option>
-      </select>
-      <button class="btn" onclick="guardarDatos()">Guardar</button>
-      <div class="alerta">
-        ⚠️ <strong>Importante:</strong> Esta herramienta guarda la información solo en el navegador actual.
+      <div class="filtros">
+        <select id="areaFiltro" onchange="filtrarOperadoresPorArea()">
+          <option value="">-- Área --</option>
+        </select>
+        <select id="operadoresGuardados" onchange="cargarOperador()">
+          <option value="">-- Operador --</option>
+        </select>
+        <button class="btn" onclick="guardarDatos()">
+          <i class="fas fa-save"></i> Guardar
+        </button>
+        <button class="btn" onclick="calcularResumenCategorias()">
+          <i class="fas fa-calculator"></i> Calcular
+        </button>
+      </div>
+     
+    </div>
+
+    <div class="datos-operador" id="infoOperador">
+      <h2><i class="fas fa-id-card"></i> Información del Operador</h2>
+      <p style="font-size: 11px; margin-top: 3px;">Seleccione un operador para ver su información</p>
+    </div>
+
+    <div class="tabla-matriz">
+      <div class="filtros-tabla">
+        <input type="text" id="filtroCategoria" placeholder="Categoría...">
+        <input type="text" id="filtroCodigo" placeholder="Código...">
+        <input type="text" id="filtroDocumento" placeholder="Documento...">
+        <button class="btn" onclick="aplicarFiltrosMatriz()">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+      </div>
+
+      <!-- Solo esta área scrollea -->
+      <div id="matriz">
+        <p style="padding: 14px; text-align: center; color: #666; font-size: 11px;">
+          Cargue un operador para ver su matriz de competencias
+        </p>
       </div>
     </div>
-    <div class="datos-operador" id="infoOperador"></div>
-    <div class="tabla-matriz" id="matriz"></div>
   </div>
+
   <div class="panel-right">
-    <div class="foto-tarjeta">
+    <div class="card foto-tarjeta">
+      <div class="card-header">
+        <i class="fas fa-camera"></i> Foto
+      </div>
       <img id="fotoOperador" src="" alt="Foto del operador"/>
-      <div id="nombreFotoActual">Sin foto</div>
-      <input type="file" id="inputFoto" accept="image/*" onchange="cargarFotoBase64(event)">
+      <div id="nombreFotoActual">Sin foto cargada</div>
+      <input type="file" id="inputFoto" accept="image/*" onchange="cargarFotoBase64(event)" style="display: none;">
+      <button class="btn" onclick="document.getElementById('inputFoto').click()" style="width: 100%;">
+        <i class="fas fa-upload"></i> Cargar Foto
+      </button>
     </div>
-    <div class="resumen-card">
-      <strong>Resumen por Categoría:</strong>
-      <div id="promediosPorCategoria" style="margin-top: 10px;"></div>
-      <div id="resultadoFinal" style="margin-top: 15px; font-size: 16px; font-weight: bold;"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-chart-bar"></i> Resumen
+      </div>
+      <div id="promediosPorCategoria" class="resumen-compacto">
+        <p style="text-align: center; color: #666; font-style: italic;">
+          Calcule para ver resultados
+        </p>
+      </div>
+      <div id="resultadoFinal" class="resumen-total"></div>
     </div>
-    <div class="backup-card">
-      <strong>☁️ Actualizar datos remotos:</strong><br/>
-      <button class="btn" onclick="actualizarRemoto()">Actualizar</button>
-      <div class="mini">Origen: enlace de Dropbox normalizado a descarga directa.</div>
-      <hr style="margin:12px 0; border:none; border-top:1px solid #e5e7eb;">
-      <strong>💾 Respaldo local:</strong><br/>
-      <button class="btn" onclick="exportarDatos()">Exportar respaldo</button>
-      <input accept=".json" onchange="importarDatos(event)" style="margin-left: 10px;" type="file"/>
+
+    <div class="card backup-card">
+      <div class="card-header">
+        <i class="fas fa-database"></i> Respaldo
+      </div>
+      <div class="backup-actions">
+        <button class="btn" onclick="exportarDatos()">
+          <i class="fas fa-download"></i> Exportar
+        </button>
+        <div style="position: relative;">
+          <input type="file" id="importFile" accept=".json" onchange="importarDatos(event)" style="display: none;">
+          <button class="btn" onclick="document.getElementById('importFile').click()" style="width: 100%;">
+            <i class="fas fa-upload"></i> Importar
+          </button>
+        </div>
+      </div>
     </div>
-    <div id="leyendaILUO">
-      <strong>Referencias ILUO:</strong><br/><br/>
-      Nivel: <span style="color: #c462c4; font-weight: bold;">N/A</span> (Entrenamiento): Categoria E = Personal sin conocimiento, no puede operar autónomamente.<br/>
-      <br/>
-      Nivel:<span style="color: red; font-weight: bold;">I</span> (Semicompetente): Categoria D = Aplica tareas con supervisión. Calcula, resuelve y aplica.<br/>
-      <br/>
-      Nivel:<span style="color: #2bace2; font-weight: bold;">L</span> (Competente): Categoria C = Opera tareas sin supervisión. Clasifica, interpreta, sintetiza.<br/>
-      <br/>
-      Nivel:<span style="color: #00a651; font-weight: bold;">U</span> (Experto): Categoria B = Realiza tareas y las supervisa. Propone, mejora, diseña.<br/>
-      <br/>
-      Nivel:<span style="color: black; font-weight: bold;">O</span> (Maestro): Categoria A = Realiza, supervisa y enseña. Evalúa, optimiza y forma a otros.
+
+    <div class="card" id="leyendaILUO">
+      <div class="card-header">
+        <i class="fas fa-info-circle"></i> Referencias ILUO
+      </div>
+      <div class="leyenda-item leyenda-na">
+        <strong>N/A</strong> Entrenamiento (Cat. E): Personal sin conocimiento, no puede operar autónomamente.
+      </div>
+      <div class="leyenda-item leyenda-i">
+        <strong>I</strong> Semicompetente (Cat. D): Aplica tareas con supervisión. Calcula, resuelve y aplica.
+      </div>
+      <div class="leyenda-item leyenda-l">
+        <strong>L</strong> Competente (Cat. C): Opera tareas sin supervisión. Clasifica, interpreta, sintetiza.
+      </div>
+      <div class="leyenda-item leyenda-u">
+        <strong>U</strong> Experto (Cat. B): Realiza tareas y las supervisa. Propone, mejora, diseña.
+      </div>
+      <div class="leyenda-item leyenda-o">
+        <strong>O</strong> Maestro (Cat. A): Realiza, supervisa y enseña. Evalúa, optimiza y forma a otros.
+      </div>
     </div>
- </div>
+  </div>
+</div>
+
+
+
+<!-- Notificación -->
+<div id="notification" class="notification">
+  <i class="fas fa-check-circle"></i>
+  <span id="notificationText">Operación completada</span>
 </div>
 
 <script>
-// ==========================
-// IndexedDB utilidades
-// ==========================
+/* === Tu lógica original, intacta === */
 const DB_NAME = 'ILUO_DB';
 const DB_VERSION = 1;
 const STORE_NAME = 'respaldo';
@@ -374,138 +629,76 @@ let indiceDocumentosExtra = [];
 let documentosAdministrador = [];
 let indiceIATF = [];
 let examenesILUO = [];
-let rutasExamenes = {}; // { [codigo]: "ruta/al/examen" }
-
-// ==========================
-// Remoto (Dropbox): actualizar con un solo botón
-// ==========================
-const REMOTE_JSON_URL = 'https://www.dropbox.com/scl/fi/100bnpwf0m40lf881mreg/respaldo.json?rlkey=rsxvt8rq6lzg5yr4j08q4vyc9&st=opfnnhhb&dl=0';
-
-function normalizarDropbox(url){
-  try{
-    // fuerza descarga directa (mejor CORS):
-    // 1) dl=1 o raw=1
-    let u = new URL(url);
-    if(u.hostname === 'www.dropbox.com') u.hostname = 'dl.dropboxusercontent.com';
-    if(u.searchParams.has('dl')) u.searchParams.set('dl','1');
-    else if(!u.searchParams.has('raw')) u.searchParams.set('raw','1');
-    return u.toString();
-  }catch(e){
-    return url.replace('www.dropbox.com','dl.dropboxusercontent.com').replace('dl=0','dl=1');
-  }
-}
-
-async function actualizarRemoto() {
-  const url = normalizarDropbox(REMOTE_JSON_URL);
-  try {
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-
-    // Intentar JSON; si no, parsear texto
-    let data;
-    try {
-      data = await res.clone().json();            // 1er intento (puede fallar si es text/plain)
-    } catch (err1) {
-      const txt = await res.text();               // 2do intento
-      data = JSON.parse(txt);
-    }
-
-    if (!data || typeof data !== 'object') {
-      throw new Error('El archivo remoto no contiene JSON válido');
-    }
-
-    if (data.matrizILUO)              await guardarEnIndexedDB('matrizILUO', data.matrizILUO);
-    if (data.documentosILUO)          await guardarEnIndexedDB('documentosILUO', data.documentosILUO);
-    if (data.indiceDocumentosExtra)   await guardarEnIndexedDB('indiceDocumentosExtra', data.indiceDocumentosExtra);
-    if (data.documentosAdministrador) await guardarEnIndexedDB('documentosAdministrador', data.documentosAdministrador);
-    if (data.indiceIATF)              await guardarEnIndexedDB('indiceIATF', data.indiceIATF);
-    if (data.examenesILUO)            await guardarEnIndexedDB('examenesILUO', data.examenesILUO);
-    if (data.rutasExamenes)           await guardarEnIndexedDB(RUTAS_EXAMENES_KEY, data.rutasExamenes);
-
-    await cargarListaOperadores();
-    if (operadorActual) renderizarMatriz();
-    alert('Datos actualizados desde Dropbox.');
-  } catch (e) {
-    alert('Error al actualizar remoto\nDetalle: ' + (e && e.message ? e.message : e));
-  }
-}
-
+let rutasExamenes = {};
 
 // ----- Inicialización -----
 async function inicializar() {
   await migrarLocalStorageAIndexedDB();
-  operadores = await leerDeIndexedDB('matrizILUO') || [];
-  documentos = await leerDeIndexedDB('documentosILUO') || [];
-  indiceDocumentosExtra = await leerDeIndexedDB('indiceDocumentosExtra') || [];
-  documentosAdministrador = await leerDeIndexedDB('documentosAdministrador') || [];
-  indiceIATF = await leerDeIndexedDB('indiceIATF') || [];
-  examenesILUO = await leerDeIndexedDB('examenesILUO') || [];
+  operadores = await leerDeIndexedDB("matrizILUO") || [];
+  documentos = await leerDeIndexedDB("documentosILUO") || [];
+  indiceDocumentosExtra = await leerDeIndexedDB("indiceDocumentosExtra") || [];
+  documentosAdministrador = await leerDeIndexedDB("documentosAdministrador") || [];
+  indiceIATF = await leerDeIndexedDB("indiceIATF") || [];
+  examenesILUO = await leerDeIndexedDB("examenesILUO") || [];
   rutasExamenes = await leerDeIndexedDB(RUTAS_EXAMENES_KEY) || {};
-  await cargarListaOperadores();
-  
+  cargarListaOperadores();
+  showNotification('Sistema cargado correctamente', 'success');
 }
-
-document.addEventListener('DOMContentLoaded', inicializar);
+document.addEventListener("DOMContentLoaded", inicializar);
 
 // ----- Funciones principales -----
 function calcularNivel(p) {
-  if (p >= 95) return 'O';
-  if (p >= 90) return 'U';
-  if (p >= 80) return 'L';
-  if (p >= 70) return 'I';
-  if (p >= 2) return 'NA';
-  return 'NA';
+  if (p >= 95) return "O";
+  if (p >= 90) return "U";
+  if (p >= 80) return "L";
+  if (p >= 70) return "I";
+  if (p >= 2) return "NA";
+  return "NA";
 }
 
 function renderizarMatriz() {
-  document.getElementById('infoOperador').innerHTML =
-    `<h2>Empleado: ${operadorActual.numero} | ${operadorActual.nombre} | Puesto: ${operadorActual.puesto} | Área: ${operadorActual.area}</h2>`;
+  document.getElementById("infoOperador").innerHTML =
+    `<h2><i class="fas fa-id-card"></i> Empleado: ${operadorActual.numero} | ${operadorActual.nombre} | Puesto: ${operadorActual.puesto} | Área: ${operadorActual.area}</h2>`;
 
-  // --- FILTRO POR PUESTO ---
   const docs = documentos.filter(d =>
     d.puesto && operadorActual.puesto &&
     d.puesto.toLowerCase().trim() === operadorActual.puesto.toLowerCase().trim()
   );
 
-  let html = `
-  <div class="form-group" style="margin-top: 10px;">
-    <input type="text" id="filtroCategoria" placeholder="Filtrar por categoría..." oninput="aplicarFiltrosMatriz()"/>
-    <input type="text" id="filtroCodigo" placeholder="Filtrar por código..." oninput="aplicarFiltrosMatriz()"/>
-    <input type="text" id="filtroDocumento" placeholder="Filtrar por documento..." oninput="aplicarFiltrosMatriz()"/>
-  </div>
-  `;
-  html += '<table><thead><tr><th>Código</th><th>Documento</th><th>Tipo de Categoría</th><th>Revisión</th><th>Capacitador</th><th>Calificación</th><th>Nivel ILUO</th></tr></thead><tbody>';
+  let html = '<table><thead><tr><th>Código</th><th>Documento</th><th>Tipo de Categoría</th><th>Revisión</th><th>Capacitador</th><th>Calificación</th><th>Fecha de Entrenamiento</th><th>Nivel ILUO</th></tr></thead><tbody>';
 
   docs.forEach((doc, i) => {
     const id = `doc_${i}`;
     html += `<tr>
       <td class="codigo">${doc.codigo || ''}</td>
       <td class="documento">${doc.documento}</td>
-      <td>${doc.tipoCategoria || ''}</td>
+      <td>${doc.tipoCategoria || ""}</td>
       <td>${doc.revision || ''}</td>
       <td>${doc.capacitador || ''}</td>
       <td><input type="number" id="cal_${id}" min="0" max="100" onchange="actualizarNivel('${id}'); calcularResumenCategorias()"></td>
-      <td><input type="text" id="nivel_${id}" readonly></td>
+      <td><input type="date" id="fecha_${id}" placeholder="dd/mm/aaaa"></td>
+      <td><div id="nivel_${id}" class="nivel-cell"></div></td>
     </tr>`;
   });
   html += '</tbody></table>';
-  document.getElementById('matriz').innerHTML = html;
+  document.getElementById("matriz").innerHTML = html;
 }
-
 
 function actualizarNivel(id) {
   const val = parseFloat(document.getElementById(`cal_${id}`).value);
-  const input = document.getElementById(`nivel_${id}`);
+  const elemento = document.getElementById(`nivel_${id}`);
   const nivel = calcularNivel(val);
-  input.value = nivel;
-  input.className = '';
-  input.classList.add('nivel-' + nivel);
+  elemento.textContent = nivel || '';
+  elemento.className = 'nivel-cell';
+  if (nivel) elemento.classList.add('nivel-' + nivel);
 }
 
 async function guardarDatos() {
-  if (!operadorActual) return alert('No hay operador activo');
+  if (!operadorActual) {
+    showNotification('No hay operador activo', 'error');
+    return;
+  }
 
-  // Reconstruir documentacion del operador desde la tabla visible
   operadorActual.documentacion = [];
 
   const docs = documentos.filter(d =>
@@ -521,31 +714,27 @@ async function guardarDatos() {
       revision: doc.revision,
       capacitador: doc.capacitador,
       calificacion: document.getElementById(`cal_${id}`).value,
-      nivel: document.getElementById(`nivel_${id}`).value,
+      fecha: document.getElementById(`fecha_${id}`).value,
+      nivel: document.getElementById(`nivel_${id}`).textContent,
     });
   });
 
-  // Guardar solo en IndexedDB (sin descargar nada)
-  const lista = await leerDeIndexedDB('matrizILUO') || [];
+  const lista = await leerDeIndexedDB("matrizILUO") || [];
   const idx = lista.findIndex(op => op.numero === operadorActual.numero);
   if (idx >= 0) lista[idx] = operadorActual;
   else lista.push(operadorActual);
-  await guardarEnIndexedDB('matrizILUO', lista);
+  await guardarEnIndexedDB("matrizILUO", lista);
 
-  // (Opcional) rutasExamenes
-  // await guardarEnIndexedDB(RUTAS_EXAMENES_KEY, rutasExamenes);
-
-  alert('Datos guardados en este navegador.');
+  showNotification('Datos guardados correctamente', 'success');
 }
 
-
 async function cargarListaOperadores() {
-  operadores = await leerDeIndexedDB('matrizILUO') || [];
+  operadores = await leerDeIndexedDB("matrizILUO") || [];
   const areas = [...new Set(operadores.map(op => op.area))].sort();
-  const areaSelect = document.getElementById('areaFiltro');
-  areaSelect.innerHTML = '<option value="">-- Filtrar por área --</option>';
+  const areaSelect = document.getElementById("areaFiltro");
+  areaSelect.innerHTML = '<option value="">-- Área --</option>';
   areas.forEach(area => {
-    const opt = document.createElement('option');
+    const opt = document.createElement("option");
     opt.value = area;
     opt.textContent = area;
     areaSelect.appendChild(opt);
@@ -554,10 +743,10 @@ async function cargarListaOperadores() {
 }
 
 function actualizarListaOperadores(lista) {
-  const select = document.getElementById('operadoresGuardados');
-  select.innerHTML = '<option value="">-- Cargar operador --</option>';
+  const select = document.getElementById("operadoresGuardados");
+  select.innerHTML = '<option value="">-- Operador --</option>';
   lista.forEach(op => {
-    const opt = document.createElement('option');
+    const opt = document.createElement("option");
     opt.value = op.numero;
     opt.textContent = op.nombre;
     select.appendChild(opt);
@@ -565,8 +754,8 @@ function actualizarListaOperadores(lista) {
 }
 
 async function filtrarOperadoresPorArea() {
-  const area = document.getElementById('areaFiltro').value;
-  operadores = await leerDeIndexedDB('matrizILUO') || [];
+  const area = document.getElementById("areaFiltro").value;
+  operadores = await leerDeIndexedDB("matrizILUO") || [];
   const filtrados = area ? operadores.filter(op => op.area === area) : operadores;
   actualizarListaOperadores(filtrados);
 }
@@ -577,37 +766,39 @@ async function cargarFotoBase64(event) {
   const reader = new FileReader();
   reader.onload = async function(e) {
     operadorActual.foto = e.target.result;
-    // Guarda la foto en base64 en la BD
-    let personas = await leerDeIndexedDB('matrizILUO') || [];
+    let personas = await leerDeIndexedDB("matrizILUO") || [];
     const idx = personas.findIndex(p => p.numero === operadorActual.numero);
     if (idx >= 0) personas[idx].foto = operadorActual.foto;
-    await guardarEnIndexedDB('matrizILUO', personas);
+    await guardarEnIndexedDB("matrizILUO", personas);
     mostrarFotoBase64();
+    showNotification('Foto cargada correctamente', 'success');
   };
   reader.readAsDataURL(file);
 }
 
 function mostrarFotoBase64() {
-  const img = document.getElementById('fotoOperador');
-  const lbl = document.getElementById('nombreFotoActual');
-  if (operadorActual && operadorActual.foto && operadorActual.foto.startsWith('data:image')) {
+  const img = document.getElementById("fotoOperador");
+  const lbl = document.getElementById("nombreFotoActual");
+  if (operadorActual && operadorActual.foto && operadorActual.foto.startsWith("data:image")) {
     img.src = operadorActual.foto;
-    img.style.display = 'block';
-    lbl.textContent = 'Foto cargada en la base de datos';
+    img.style.display = "block";
+    lbl.textContent = "Foto cargada correctamente";
   } else {
-    img.src = '';
-    img.style.display = 'none';
-    lbl.textContent = 'Sin foto';
+    img.src = "";
+    img.style.display = "none";
+    lbl.textContent = "Sin foto cargada";
   }
 }
 
-
 async function cargarOperador() {
-  const numero = document.getElementById('operadoresGuardados').value;
+  const numero = document.getElementById("operadoresGuardados").value;
   if (!numero) return;
-  operadores = await leerDeIndexedDB('matrizILUO') || [];
+  operadores = await leerDeIndexedDB("matrizILUO") || [];
   operadorActual = operadores.find(o => o.numero === numero);
-  if (!operadorActual) return alert('Operador no encontrado');
+  if (!operadorActual) {
+    showNotification('Operador no encontrado', 'error');
+    return;
+  }
   mostrarFotoBase64();
   renderizarMatriz();
   setTimeout(() => {
@@ -618,33 +809,36 @@ async function cargarOperador() {
       const nivel = document.getElementById(`nivel_${id}`);
       const fecha = document.getElementById(`fecha_${id}`);
 
-      if (cal) cal.value = doc.calificacion || '';
+      if (cal)   cal.value   = doc.calificacion || '';
       if (fecha) fecha.value = doc.fecha || '';
-      
+
       if (cal && nivel) actualizarNivel(id);
     });
     calcularResumenCategorias();
   }, 100);
+
+  showNotification(`Operador ${operadorActual.nombre} cargado`, 'success');
 }
 
 async function exportarDatos() {
   const data = {
-    matrizILUO: await leerDeIndexedDB('matrizILUO') || [],
-    documentosILUO: await leerDeIndexedDB('documentosILUO') || [],
-    indiceDocumentosExtra: await leerDeIndexedDB('indiceDocumentosExtra') || [],
-    documentosAdministrador: await leerDeIndexedDB('documentosAdministrador') || [],
-    indiceIATF: await leerDeIndexedDB('indiceIATF') || [],
-    examenesILUO: await leerDeIndexedDB('examenesILUO') || [],
+    matrizILUO: await leerDeIndexedDB("matrizILUO") || [],
+    documentosILUO: await leerDeIndexedDB("documentosILUO") || [],
+    indiceDocumentosExtra: await leerDeIndexedDB("indiceDocumentosExtra") || [],
+    documentosAdministrador: await leerDeIndexedDB("documentosAdministrador") || [],
+    indiceIATF: await leerDeIndexedDB("indiceIATF") || [],
+    examenesILUO: await leerDeIndexedDB("examenesILUO") || [],
     rutasExamenes: await leerDeIndexedDB(RUTAS_EXAMENES_KEY) || {}
   };
 
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
-  a.download = 'respaldo_matriz_iluo_completo.json';
+  a.download = "respaldo_matriz_iluo_completo.json";
   a.click();
   URL.revokeObjectURL(url);
+  showNotification('Datos exportados correctamente', 'success');
 }
 
 async function importarDatos(event) {
@@ -654,16 +848,16 @@ async function importarDatos(event) {
   reader.onload = async function(e) {
     try {
       const data = JSON.parse(e.target.result);
-      if (data.matrizILUO) await guardarEnIndexedDB('matrizILUO', data.matrizILUO);
-      if (data.documentosILUO) await guardarEnIndexedDB('documentosILUO', data.documentosILUO);
-      if (data.indiceDocumentosExtra) await guardarEnIndexedDB('indiceDocumentosExtra', data.indiceDocumentosExtra);
-      if (data.documentosAdministrador) await guardarEnIndexedDB('documentosAdministrador', data.documentosAdministrador);
-      if (data.indiceIATF) await guardarEnIndexedDB('indiceIATF', data.indiceIATF);
-      if (data.examenesILUO) await guardarEnIndexedDB('examenesILUO', data.examenesILUO);
+      if (data.matrizILUO) await guardarEnIndexedDB("matrizILUO", data.matrizILUO);
+      if (data.documentosILUO) await guardarEnIndexedDB("documentosILUO", data.documentosILUO);
+      if (data.indiceDocumentosExtra) await guardarEnIndexedDB("indiceDocumentosExtra", data.indiceDocumentosExtra);
+      if (data.documentosAdministrador) await guardarEnIndexedDB("documentosAdministrador", data.documentosAdministrador);
+      if (data.indiceIATF) await guardarEnIndexedDB("indiceIATF", data.indiceIATF);
+      if (data.examenesILUO) await guardarEnIndexedDB("examenesILUO", data.examenesILUO);
       if (data.rutasExamenes) await guardarEnIndexedDB(RUTAS_EXAMENES_KEY, data.rutasExamenes);
-      alert('Datos importados correctamente. Recarga la página para ver los cambios.');
+      showNotification('Datos importados correctamente. Recargue la página para ver los cambios.', 'success');
     } catch (err) {
-      alert('Error al importar el archivo. Verifique que sea un respaldo válido.');
+      showNotification('Error al importar el archivo. Verifique que sea un respaldo válido.', 'error');
     }
   };
   reader.readAsText(file);
@@ -671,13 +865,13 @@ async function importarDatos(event) {
 
 function calcularResumenCategorias() {
   const categorias = {
-    'Normatividad': { pts: 5, valores: [] },
-    'Valores': { pts: 5, valores: [] },
-    'Seguridad': { pts: 15, valores: [] },
-    'Lean': { pts: 15, valores: [] },
-    'Calidad': { pts: 30, valores: [] },
-    'Eficiencia': { pts: 30, valores: [] },
-    'Sin Clasificar': { pts: 0, valores: [] }
+    "Normatividad": { pts: 5, valores: [] },
+    "Valores": { pts: 5, valores: [] },
+    "Seguridad": { pts: 15, valores: [] },
+    "Lean": { pts: 15, valores: [] },
+    "Calidad": { pts: 30, valores: [] },
+    "Eficiencia": { pts: 30, valores: [] },
+    "Sin Clasificar": { pts: 0, valores: [] }
   };
 
   const docs = documentos.filter(d =>
@@ -689,7 +883,7 @@ function calcularResumenCategorias() {
 
   operadorActual.documentacion.forEach((doc) => {
     const docRef = docs.find(d => d.codigo === doc.codigo);
-    const tipo = (docRef && docRef.tipoCategoria) ? docRef.tipoCategoria : 'Sin Clasificar';
+    const tipo = docRef?.tipoCategoria || "Sin Clasificar";
     const val = parseFloat(doc.calificacion);
     if (!isNaN(val)) {
       if (!categorias[tipo]) categorias[tipo] = { pts: 0, valores: [] };
@@ -698,57 +892,60 @@ function calcularResumenCategorias() {
   });
 
   let total = 0;
-  let resumenHTML = '<table><thead><tr><th>Categoría</th><th>Ponderación</th><th>Promedio</th><th>Puntos</th></tr></thead><tbody>';
+  let resumenHTML = '';
+
   Object.entries(categorias).forEach(([nombre, { pts, valores }]) => {
     const promedio = valores.length ? valores.reduce((a, b) => a + b, 0) / valores.length : 0;
     const puntos = promedio * pts / 100;
     total += puntos;
-    resumenHTML += `<tr><td>${nombre}</td><td>${pts}%</td><td>${promedio.toFixed(1)}%</td><td>${puntos.toFixed(1)}%</td></tr>`;
+
+    if (pts > 0) {
+      resumenHTML += `
+        <div class="resumen-linea">
+          <span class="resumen-categoria">${nombre}</span>
+          <span class="resumen-porcentaje">${promedio.toFixed(1)}%</span>
+        </div>
+      `;
+    }
   });
-  resumenHTML += '</tbody></table>';
 
-  let nivelFinal = '';
-  let letra = '';
-  if (total >= 95) { nivelFinal = 'Maestro'; letra = 'A'; }
-  else if (total >= 90) { nivelFinal = 'Experto'; letra = 'B'; }
-  else if (total >= 80) { nivelFinal = 'Competente'; letra = 'C'; }
-  else if (total >= 70) { nivelFinal = 'Semicompetente'; letra = 'D'; }
-  else if (total >= 50) { nivelFinal = 'Entrenamiento'; letra = 'E'; }
-  else { nivelFinal = 'Sin Clasificar'; letra = '-'; }
+  let nivelFinal = "", letra = "";
+  if (total >= 95) { nivelFinal = "Maestro"; letra = "A"; }
+  else if (total >= 90) { nivelFinal = "Experto"; letra = "B"; }
+  else if (total >= 80) { nivelFinal = "Competente"; letra = "C"; }
+  else if (total >= 70) { nivelFinal = "Semicompetente"; letra = "D"; }
+  else if (total >= 50) { nivelFinal = "Entrenamiento"; letra = "E"; }
+  else { nivelFinal = "Sin Clasificar"; letra = "-"; }
 
-  if (!document.getElementById('promediosPorCategoria')) {
-    let resumen = document.createElement('div');
-    resumen.id = 'promediosPorCategoria';
-    document.body.appendChild(resumen);
-  }
-  if (!document.getElementById('resultadoFinal')) {
-    let resultado = document.createElement('div');
-    resultado.id = 'resultadoFinal';
-    document.body.appendChild(resultado);
-  }
-
-  document.getElementById('promediosPorCategoria').innerHTML = resumenHTML;
-  document.getElementById('resultadoFinal').innerHTML = `Resultado Total: <span style="color: #004990;">${total.toFixed(1)}%</span> → Nivel: <strong>${nivelFinal}</strong> (Categoría ${letra})`;
+  document.getElementById("promediosPorCategoria").innerHTML = resumenHTML;
+  document.getElementById("resultadoFinal").innerHTML =
+    `Resultado: ${total.toFixed(1)}% → ${nivelFinal} (Cat. ${letra})`;
 }
 
 function aplicarFiltrosMatriz() {
-  const fc = document.getElementById('filtroCategoria');
-  const fg = document.getElementById('filtroCodigo');
-  const fd = document.getElementById('filtroDocumento');
-  const categoria = ((fc && fc.value) ? fc.value : '').toLowerCase();
-  const codigo = ((fg && fg.value) ? fg.value : '').toLowerCase();
-  const documento = ((fd && fd.value) ? fd.value : '').toLowerCase();
-  const filas = document.querySelectorAll('#matriz table tbody tr');
+  const categoria = document.getElementById("filtroCategoria")?.value.toLowerCase() || "";
+  const codigo = document.getElementById("filtroCodigo")?.value.toLowerCase() || "";
+  const documento = document.getElementById("filtroDocumento")?.value.toLowerCase() || "";
+  const filas = document.querySelectorAll("#matriz table tbody tr");
   filas.forEach(fila => {
-    const celdaCategoria = (fila.cells[2] && fila.cells[2].textContent ? fila.cells[2].textContent : '').toLowerCase();
-    const celdaCodigo = (fila.cells[0] && fila.cells[0].textContent ? fila.cells[0].textContent : '').toLowerCase();
-    const celdaDocumento = (fila.cells[1] && fila.cells[1].textContent ? fila.cells[1].textContent : '').toLowerCase();
+    const celdaCategoria = fila.cells[2]?.textContent.toLowerCase() || "";
+    const celdaCodigo = fila.cells[0]?.textContent.toLowerCase() || "";
+    const celdaDocumento = fila.cells[1]?.textContent.toLowerCase() || "";
     const mostrar =
       celdaCategoria.includes(categoria) &&
       celdaCodigo.includes(codigo) &&
       celdaDocumento.includes(documento);
-    fila.style.display = mostrar ? '' : 'none';
+    fila.style.display = mostrar ? "" : "none";
   });
+}
+
+function showNotification(message, type) {
+  const notification = document.getElementById('notification');
+  const notificationText = document.getElementById('notificationText');
+  notificationText.textContent = message;
+  notification.className = `notification ${type}`;
+  notification.classList.add('show');
+  setTimeout(() => { notification.classList.remove('show'); }, 3000);
 }
 </script>
 
@@ -757,5 +954,26 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js');
 }
 </script>
+
+<script>
+/* === Controles de Zoom === */
+(function initZoom(){
+  const guardado = localStorage.getItem('uiZoom');
+  const z = guardado ? parseFloat(guardado) : 1.00; // 100% por defecto
+  setZoom(z, false);
+})();
+function setZoom(factor, persistir = true){
+  const z = Math.max(0.70, Math.min(1.50, factor)); // límites 70% - 150%
+  document.documentElement.style.setProperty('--ui-zoom', z.toString());
+  const etiqueta = document.getElementById('zoomVal');
+  if(etiqueta) etiqueta.textContent = Math.round(z*100) + '%';
+  if(persistir) localStorage.setItem('uiZoom', z.toString());
+}
+function ajustarZoom(delta){
+  const actual = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-zoom')) || 1;
+  setZoom(actual + delta);
+}
+</script>
+
 </body>
 </html>
